@@ -1,0 +1,19 @@
+{
+  "name": "ANONYMIKETECH",
+  "short_name": "AMT Bots",
+  "description": "WhatsApp Bot Hosting Platform — deploy, manage and automate your WhatsApp bots.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#00e599",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["productivity", "utilities", "business"],
+  "screenshots": []
+}
