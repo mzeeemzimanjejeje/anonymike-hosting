@@ -61414,12 +61414,30 @@ async function getSettingValue(key) {
 }
 async function getEggDefaults(eggId) {
   // Fetch egg details from Pterodactyl App API to get docker_image and startup defaults
+  // Requires nest ID — read from settings, then fall back to searching all nests
   try {
-    const data = await appRequest("GET", `/nests/eggs/${eggId}?include=variables`);
-    return {
-      dockerImage: data?.attributes?.docker_image ?? null,
-      startup: data?.attributes?.startup ?? null
-    };
+    const nestIdRaw = await getSettingValue("ptero_nest_id");
+    if (nestIdRaw) {
+      const data = await appRequest("GET", `/nests/${nestIdRaw}/eggs/${eggId}?include=variables`);
+      return {
+        dockerImage: data?.attributes?.docker_image ?? null,
+        startup: data?.attributes?.startup ?? null
+      };
+    }
+    // No nest ID stored — search all nests
+    const nests = await appRequest("GET", "/nests");
+    for (const nest of nests?.data ?? []) {
+      try {
+        const data = await appRequest("GET", `/nests/${nest.attributes.id}/eggs/${eggId}?include=variables`);
+        if (data?.attributes) {
+          return {
+            dockerImage: data.attributes.docker_image ?? null,
+            startup: data.attributes.startup ?? null
+          };
+        }
+      } catch {}
+    }
+    return { dockerImage: null, startup: null };
   } catch {
     return { dockerImage: null, startup: null };
   }
