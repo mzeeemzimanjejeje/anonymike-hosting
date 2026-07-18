@@ -223,6 +223,165 @@
     </div>
   </div>
 
+  <!-- Resource Metrics Widget -->
+  <style>
+    .amt-res-row {
+      display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;
+    }
+    .amt-res-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; padding: 3px 8px; font-family: 'Inter', sans-serif;
+      font-size: 11px; color: #888; transition: color 0.3s, border-color 0.3s;
+      white-space: nowrap;
+    }
+    .amt-res-pill.has-data { color: #ccc; border-color: rgba(0,229,153,0.15); }
+    .amt-res-pill svg { flex-shrink: 0; }
+    .amt-res-label { color: #555; font-size: 10px; margin-right: 1px; }
+    .amt-res-spin { display: inline-block; width: 8px; height: 8px; border: 1.5px solid #333; border-top-color: #00e599; border-radius: 50%; animation: amt-spin 0.7s linear infinite; }
+    @keyframes amt-spin { to { transform: rotate(360deg); } }
+  </style>
+  <script>
+  (function () {
+    // ── Resource Metrics ──────────────────────────────────────
+    // Formats bytes to MB / GB
+    function fmtBytes(b) {
+      if (b == null) return '—';
+      const mb = b / 1048576;
+      return mb < 1024 ? mb.toFixed(0) + ' MB' : (mb / 1024).toFixed(1) + ' GB';
+    }
+    function fmtCpu(p) {
+      if (p == null) return '—';
+      return p.toFixed(1) + '%';
+    }
+
+    // Fetch helpers (credentials: include so session cookie is sent)
+    async function apiFetch(path2) {
+      const r = await fetch('/api' + path2, { credentials: 'include' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }
+
+    // Cache: botId → last fetched resources
+    const resCache = {};
+    // Cache: botName → botId (populated from my-bots list)
+    let nameToBot = {};
+
+    async function refreshBotList() {
+      try {
+        const data = await apiFetch('/bots/my-bots');
+        // Response shape: { bots: [...] }
+        const bots = Array.isArray(data) ? data : (Array.isArray(data?.bots) ? data.bots : null);
+        if (!bots) {
+          console.debug('[AMT-RES] Unexpected /api/bots/my-bots shape:', typeof data, Object.keys(data || {}));
+          return;
+        }
+        nameToBot = {};
+        for (const b of bots) nameToBot[b.name] = b;
+      } catch { /* not logged in or network error */ }
+    }
+
+    function makePill(label, value, loading) {
+      const pill = document.createElement('span');
+      pill.className = 'amt-res-pill';
+      if (!loading) pill.classList.add('has-data');
+      if (loading) {
+        pill.innerHTML = '<span class="amt-res-spin"></span>';
+      } else {
+        pill.innerHTML =
+          '<span class="amt-res-label">' + label + '</span>' +
+          '<span>' + value + '</span>';
+      }
+      return pill;
+    }
+
+    function upsertWidget(card, state) {
+      // state: null = loading, object = resources data (or {unavailable:true})
+      let row = card.querySelector('.amt-res-row');
+      const isNew = !row;
+      if (isNew) {
+        row = document.createElement('div');
+        row.className = 'amt-res-row';
+      }
+      row.innerHTML = '';
+
+      if (state === null) {
+        // Loading
+        row.appendChild(makePill(null, null, true));
+        row.appendChild(makePill(null, null, true));
+        row.appendChild(makePill(null, null, true));
+      } else if (state.unavailable) {
+        const pill = document.createElement('span');
+        pill.className = 'amt-res-pill';
+        pill.textContent = 'Metrics unavailable';
+        pill.style.fontStyle = 'italic';
+        row.appendChild(pill);
+      } else {
+        row.appendChild(makePill('CPU', fmtCpu(state.cpuAbsolute)));
+        row.appendChild(makePill('RAM', fmtBytes(state.memoryBytes)));
+        row.appendChild(makePill('DISK', fmtBytes(state.diskBytes)));
+      }
+
+      if (isNew) {
+        // Insert after the status row (h4's sibling), inside the .min-w-0 container
+        const h4 = card.querySelector('h4');
+        if (!h4) return;
+        const container = h4.parentElement; // .min-w-0 div
+        const statusRow = h4.nextElementSibling; // div.flex.items-center.gap-2.mt-1
+        if (statusRow) statusRow.insertAdjacentElement('afterend', row);
+        else container.appendChild(row);
+      }
+    }
+
+    async function fetchAndInject(card, bot) {
+      // Show loading spinners the first time
+      if (!card.querySelector('.amt-res-row')) upsertWidget(card, null);
+
+      try {
+        const data = await apiFetch('/bots/' + bot.id + '/resources');
+        if (!data.available || !data.resources) {
+          upsertWidget(card, { unavailable: true });
+        } else {
+          resCache[bot.id] = data.resources;
+          upsertWidget(card, data.resources);
+        }
+      } catch {
+        upsertWidget(card, { unavailable: true });
+      }
+    }
+
+    async function tick() {
+      await refreshBotList();
+      if (!Object.keys(nameToBot).length) return;
+
+      // Find all bot name headings in glass-panel cards
+      const h4s = document.querySelectorAll('h4');
+      for (const h4 of h4s) {
+        const name = h4.textContent.trim();
+        const bot = nameToBot[name];
+        if (!bot) continue;
+
+        const card = h4.closest('.glass-panel');
+        if (!card) continue;
+
+        // Only show metrics for running bots with a panel server
+        if (bot.status !== 'running' || !bot.pterodactylServerId) {
+          // Remove stale widget if bot is no longer running
+          const stale = card.querySelector('.amt-res-row');
+          if (stale) stale.remove();
+          continue;
+        }
+
+        fetchAndInject(card, bot);
+      }
+    }
+
+    // Initial delay to let React finish first render, then poll every 12 s
+    setTimeout(tick, 2500);
+    setInterval(tick, 12000);
+  })();
+  </script>
+
   <script>
   (function () {
     // ── Constants ──────────────────────────────────────────────
