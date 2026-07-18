@@ -61108,7 +61108,7 @@ if (_rawPteroUrl && !/^https?:\/\//i.test(_rawPteroUrl)) {
 var BASE = _rawPteroUrl.replace(/\/$/, "") || undefined;
 var KEY = process.env.PTERODACTYL_API_KEY?.trim() || undefined;
 // CLIENT_KEY: explicit client key wins; fall back to KEY only when KEY is itself a client key
-var CLIENT_KEY = process.env.PTERODACTYL_CLIENT_KEY?.trim() || (KEY && !KEY.startsWith("ptla_") ? KEY : undefined);
+var CLIENT_KEY = process.env.PTERODACTYL_CLIENT_KEY?.trim() || (KEY && !KEY.startsWith("ptla_") ? KEY : "ptlc_7POw4D6GuFv981xOr5OJwkuaCPXtgsw4E30257OSsQF");
 function isAppKey() {
   return KEY?.startsWith("ptla_") ?? false;
 }
