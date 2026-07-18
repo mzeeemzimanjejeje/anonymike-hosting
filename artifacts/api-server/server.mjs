@@ -61286,7 +61286,7 @@ function renderConfigContent(existing, key, value, format) {
   if (!found) updated.push(`${key}="${value}"`);
   return updated.filter((l, i) => l.trim() !== "" || i < updated.length - 1).join("\n") + "\n";
 }
-async function setEnvVar(serverId, key, value, filePath = "/home/container/.env", format = "env") {
+async function setEnvVar(serverId, key, value, filePath = "/.env", format = "env") {
   let existing = "";
   try {
     existing = await readFile(serverId, filePath);
@@ -61469,21 +61469,16 @@ async function getProvisionConfig(botTypeId) {
   const memory = Number((await resolve(typeCfg?.memoryLimit ?? null, "ptero_memory")) ?? 512);
   const disk = Number((await resolve(typeCfg?.diskLimit ?? null, "ptero_disk")) ?? 1024);
   const cpu = Number((await resolve(typeCfg?.cpuLimit ?? null, "ptero_cpu")) ?? 100);
-  const dockerImageOverride = await resolve(typeCfg?.dockerImage ?? null, "ptero_docker_image");
   const startupOverride = await resolve(typeCfg?.startupCommand ?? null, "ptero_startup");
   const environmentJson = await getSettingValue("ptero_environment");
   let environment = {};
   if (environmentJson) {
     try { environment = JSON.parse(environmentJson); } catch {}
   }
-  // If docker_image or startup not provided, fetch from egg
-  let dockerImage = dockerImageOverride;
-  let startup = startupOverride;
-  if (!dockerImage || !startup) {
-    const eggDefaults = await getEggDefaults(eggId);
-    if (!dockerImage) dockerImage = eggDefaults.dockerImage;
-    if (!startup) startup = eggDefaults.startup;
-  }
+  // Always use the egg's default docker image and startup — never override the image
+  const eggDefaults = await getEggDefaults(eggId);
+  const dockerImage = eggDefaults.dockerImage;
+  const startup = startupOverride || eggDefaults.startup;
   return { eggId, userId: userId2, locationIds, memory, disk, cpu, dockerImage, startup, environment };
 }
 async function autoProvisionServer(botName, userId3, provisionCfg) {
@@ -61493,7 +61488,7 @@ async function autoProvisionServer(botName, userId3, provisionCfg) {
     name: safeName,
     user: provisionCfg.userId,
     egg: provisionCfg.eggId,
-    docker_image: provisionCfg.dockerImage ?? "ghcr.io/parkervcp/yolks:nodejs_18",
+    docker_image: provisionCfg.dockerImage,
     startup: provisionCfg.startup ?? "node index.js",
     environment: provisionCfg.environment ?? {},
     limits: {
@@ -61620,7 +61615,7 @@ router3.post("/bots", async (req, res) => {
       const envTemplate = botCfg?.envTemplate ?? null;
       const shouldAutoSetup = botCfg?.autoSetup ?? false;
       const repoUrl = botCfg?.githubRepoOverride ?? null;
-      const configFilePath = botCfg?.configFilePath ?? "/home/container/.env";
+      const configFilePath = botCfg?.configFilePath ?? "/.env";
       const configFileFormat = botCfg?.configFileFormat ?? "env";
       const effectivePteroId = botCfg?.pterodactylServerIdOverride ?? pteroServerId;
       logger.info({ botId: bot.id, pteroServerId, effectivePteroId, envKey, configFilePath, configFileFormat, hasTemplate: !!envTemplate }, "Injecting session into server config");
@@ -62635,7 +62630,7 @@ router9.put("/admin/bot-settings/:botTypeId", async (req, res) => {
   if (sessionFormat !== void 0) values.sessionFormat = sessionFormat || null;
   if (envTemplate !== void 0) values.envTemplate = envTemplate || null;
   if (typeof autoSetup === "boolean") values.autoSetup = autoSetup;
-  if (configFilePath !== void 0) values.configFilePath = configFilePath || "/home/container/.env";
+  if (configFilePath !== void 0) values.configFilePath = configFilePath || "/.env";
   if (configFileFormat !== void 0) values.configFileFormat = configFileFormat || "env";
   // Auto-provisioning fields
   if (eggId !== void 0) values.eggId = eggId != null ? Number(eggId) : null;
