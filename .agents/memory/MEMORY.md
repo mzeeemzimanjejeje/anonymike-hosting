@@ -1,0 +1,3 @@
+- [Pterodactyl dual-key](pterodactyl-dual-key.md) — App key (ptla_) for CRUD, Client key (ptlc_) for power/files/resources — always separate
+- [server.mjs is the source](compiled-bundle.md) — all backend logic is in the compiled bundle; src/ files are stubs only
+- [URL auto-normalization](compiled-bundle.md) — PTERODACTYL_URL is auto-prefixed with https:// if scheme missing

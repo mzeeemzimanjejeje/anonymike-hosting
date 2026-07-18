@@ -61329,17 +61329,32 @@ async function getServerInternalId(identifier) {
   return match ? match.attributes.id : null;
 }
 async function testConnection() {
-  if (!BASE || !KEY) return { ok: false, error: "PTERODACTYL_URL or PTERODACTYL_API_KEY not set" };
-  try {
-    if (isAppKey()) {
+  const results = { panelUrl: BASE, appKey: null, clientKey: null, ok: false };
+  if (!BASE) return { ok: false, error: "PTERODACTYL_URL not set" };
+  // Test Application key
+  if (KEY) {
+    try {
       await appRequest("GET", "/servers?per_page=1");
-    } else {
-      await clientRequest("GET", "/");
+      results.appKey = { ok: true, type: isAppKey() ? "application" : "client" };
+    } catch (err) {
+      results.appKey = { ok: false, error: err?.message ?? "Unknown" };
     }
-    return { ok: true, keyType: isAppKey() ? "application" : "client", panelUrl: BASE };
-  } catch (err) {
-    return { ok: false, error: err?.message ?? "Unknown error" };
+  } else {
+    results.appKey = { ok: false, error: "PTERODACTYL_API_KEY not set" };
   }
+  // Test Client key
+  if (CLIENT_KEY) {
+    try {
+      await clientRequest("GET", "/");
+      results.clientKey = { ok: true };
+    } catch (err) {
+      results.clientKey = { ok: false, error: err?.message ?? "Unknown" };
+    }
+  } else {
+    results.clientKey = { ok: false, error: "PTERODACTYL_CLIENT_KEY not set (needed for power/files/resources)" };
+  }
+  results.ok = (results.appKey?.ok ?? false) && (results.clientKey?.ok ?? false);
+  return results;
 }
 var pterodactyl = {
   getServerStatus,
@@ -61356,7 +61371,8 @@ var pterodactyl = {
   deleteServerFromPanel,
   getServerInternalId,
   testConnection,
-  isConfigured: () => Boolean(BASE && KEY),
+  // isConfigured: true when at minimum the client key is set (enough for power/status ops)
+  isConfigured: () => Boolean(BASE && CLIENT_KEY),
   isAppKey
 };
 
