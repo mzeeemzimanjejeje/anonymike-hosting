@@ -61426,7 +61426,12 @@ async function getLiveStatus(bot) {
   }
   try {
     const s = await pterodactyl.getServerStatus(bot.pterodactylServerId);
-    return mapPteroStatus(s);
+    const liveStatus = mapPteroStatus(s);
+    if (liveStatus !== bot.status) {
+      await db.update(botsTable).set({ status: liveStatus }).where(eq(botsTable.id, bot.id));
+      logger.info({ botId: bot.id, from: bot.status, to: liveStatus }, "Bot status reconciled from Pterodactyl panel");
+    }
+    return liveStatus;
   } catch (err) {
     logger.warn({ err, botId: bot.id }, "Failed to get live Pterodactyl status");
     return bot.status;
@@ -62477,8 +62482,35 @@ function daysAgo(n) {
 function hoursAgo(n) {
   return new Date(Date.now() - n * 60 * 60 * 1e3);
 }
+async function reconcileBotStatuses() {
+  if (!pterodactyl.hasClientAccess()) return;
+  const runningBots = await db.select().from(botsTable).where(
+    and(
+      isNotNull(botsTable.pterodactylServerId),
+      inArray(botsTable.status, ["running", "starting", "stopping"])
+    )
+  );
+  if (runningBots.length === 0) return;
+  console.log(`[CLEANUP] Reconciling status for ${runningBots.length} active bot(s) against Pterodactyl panel\u2026`);
+  const results = await Promise.allSettled(
+    runningBots.map(async (bot) => {
+      try {
+        const liveStatus = mapPteroStatus(await pterodactyl.getServerStatus(bot.pterodactylServerId));
+        if (liveStatus !== bot.status) {
+          await db.update(botsTable).set({ status: liveStatus }).where(eq(botsTable.id, bot.id));
+          console.log(`[CLEANUP] Bot ${bot.id} status: ${bot.status} \u2192 ${liveStatus}`);
+        }
+      } catch (err) {
+        console.warn(`[CLEANUP] Could not reconcile bot ${bot.id}:`, err?.message ?? err);
+      }
+    })
+  );
+  const reconciled = results.filter((r) => r.status === "fulfilled").length;
+  console.log(`[CLEANUP] Status reconciliation complete (${reconciled}/${runningBots.length} checked).`);
+}
 async function runCleanup() {
   console.log("[CLEANUP] Running cleanup job\u2026");
+  await reconcileBotStatuses().catch((err) => console.error("[CLEANUP] reconcileBotStatuses failed:", err));
   const now = /* @__PURE__ */ new Date();
   await db.delete(emailVerificationsTable).where(lt(emailVerificationsTable.expiresAt, now));
   const deletedUnverified = await db.delete(usersTable).where(
