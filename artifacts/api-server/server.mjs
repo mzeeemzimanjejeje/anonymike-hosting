@@ -61156,6 +61156,19 @@ async function getServerStatus(serverId) {
   const data = await clientRequest("GET", `/servers/${serverId}/resources`);
   return data.attributes.current_state;
 }
+async function getServerResources(serverId) {
+  const data = await clientRequest("GET", `/servers/${serverId}/resources`);
+  const r = data.attributes.resources;
+  return {
+    state: data.attributes.current_state,
+    cpuAbsolute: r.cpu_absolute ?? 0,
+    memoryBytes: r.memory_bytes ?? 0,
+    diskBytes: r.disk_bytes ?? 0,
+    networkRxBytes: r.network_rx_bytes ?? 0,
+    networkTxBytes: r.network_tx_bytes ?? 0,
+    uptimeMilliseconds: r.uptime_in_milliseconds ?? 0,
+  };
+}
 async function sendPowerSignal(serverId, signal3) {
   await clientRequest("POST", `/servers/${serverId}/power`, { signal: signal3 });
 }
@@ -61272,8 +61285,43 @@ async function getServerActivity(serverId) {
   const json2 = await res.json();
   return (json2?.data ?? []).map((d) => d.attributes);
 }
+async function createServer(opts) {
+  if (!isAppKey()) {
+    throw new Error("createServer requires an Application API key (ptla_...)");
+  }
+  const data = await appRequest("POST", "/servers", opts);
+  return data?.attributes ?? null;
+}
+async function deleteServerFromPanel(internalId) {
+  if (!isAppKey()) {
+    throw new Error("deleteServerFromPanel requires an Application API key (ptla_...)");
+  }
+  await appRequest("DELETE", `/servers/${internalId}`);
+}
+async function getServerInternalId(identifier) {
+  // identifier is the short UUID used in client API; we need numeric ID for app API
+  if (!isAppKey()) return null;
+  const data = await appRequest("GET", "/servers");
+  const servers = data?.data ?? [];
+  const match = servers.find((s) => s.attributes?.identifier === identifier || String(s.attributes?.id) === identifier);
+  return match ? match.attributes.id : null;
+}
+async function testConnection() {
+  if (!BASE || !KEY) return { ok: false, error: "PTERODACTYL_URL or PTERODACTYL_API_KEY not set" };
+  try {
+    if (isAppKey()) {
+      await appRequest("GET", "/servers?per_page=1");
+    } else {
+      await clientRequest("GET", "/");
+    }
+    return { ok: true, keyType: isAppKey() ? "application" : "client", panelUrl: BASE };
+  } catch (err) {
+    return { ok: false, error: err?.message ?? "Unknown error" };
+  }
+}
 var pterodactyl = {
   getServerStatus,
+  getServerResources,
   sendPowerSignal,
   listServers,
   writeFile,
@@ -61282,6 +61330,10 @@ var pterodactyl = {
   sendCommand,
   autoSetupRepo,
   getServerActivity,
+  createServer,
+  deleteServerFromPanel,
+  getServerInternalId,
+  testConnection,
   isConfigured: () => Boolean(BASE && KEY),
   isAppKey
 };
@@ -61688,6 +61740,34 @@ router3.get("/bots/:botId/logs", async (req, res) => {
     res.status(502).json({ error: "Could not fetch logs from panel. Try again." });
   }
 });
+router3.get("/bots/:botId/resources", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const { botId } = req.params;
+  const userId = req.user.id;
+  const [bot] = await db.select().from(botsTable).where(and(eq(botsTable.id, botId), eq(botsTable.userId, userId)));
+  if (!bot) {
+    res.status(404).json({ error: "Bot not found" });
+    return;
+  }
+  if (!bot.pterodactylServerId || !pterodactyl.isConfigured()) {
+    res.json({
+      available: false,
+      message: "No panel integration — resource metrics unavailable",
+      resources: null
+    });
+    return;
+  }
+  try {
+    const resources = await pterodactyl.getServerResources(bot.pterodactylServerId);
+    res.json({ available: true, resources });
+  } catch (err) {
+    logger.warn({ err, botId }, "Failed to fetch bot resources");
+    res.status(502).json({ error: "Could not fetch resource metrics from panel. Try again." });
+  }
+});
 router3.delete("/bots/:botId", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Unauthorized" });
@@ -61706,6 +61786,19 @@ router3.delete("/bots/:botId", async (req, res) => {
       logger.info({ botId, pteroId: bot.pterodactylServerId }, "Stopped server before delete");
     } catch (err) {
       logger.warn({ err, botId }, "Failed to stop Pterodactyl server before delete \u2014 continuing anyway");
+    }
+    if (pterodactyl.isAppKey()) {
+      try {
+        const internalId = await pterodactyl.getServerInternalId(bot.pterodactylServerId);
+        if (internalId) {
+          await pterodactyl.deleteServerFromPanel(internalId);
+          logger.info({ botId, pteroId: bot.pterodactylServerId, internalId }, "Deleted Pterodactyl server from panel");
+        } else {
+          logger.warn({ botId, pteroId: bot.pterodactylServerId }, "Could not find Pterodactyl server internal ID for deletion");
+        }
+      } catch (err) {
+        logger.warn({ err, botId }, "Failed to delete Pterodactyl server from panel \u2014 continuing anyway");
+      }
     }
   }
   await db.delete(botsTable).where(eq(botsTable.id, botId));
@@ -62209,6 +62302,27 @@ router8.post("/pterodactyl/power", async (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     return res.status(502).json({ error: err?.message ?? "Failed to send power signal" });
+  }
+});
+router8.get("/pterodactyl/test", async (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: "Forbidden" });
+  const result = await pterodactyl.testConnection();
+  if (result.ok) {
+    return res.json(result);
+  } else {
+    return res.status(503).json(result);
+  }
+});
+router8.get("/pterodactyl/resources/:serverId", async (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: "Forbidden" });
+  if (!pterodactyl.isConfigured()) {
+    return res.status(503).json({ error: "Pterodactyl not configured" });
+  }
+  try {
+    const resources = await pterodactyl.getServerResources(req.params.serverId);
+    return res.json({ resources });
+  } catch (err) {
+    return res.status(502).json({ error: err?.message ?? "Failed to fetch resources" });
   }
 });
 var admin_default = router8;
