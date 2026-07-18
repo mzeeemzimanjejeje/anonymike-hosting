@@ -18,6 +18,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="module" crossorigin src="/assets/index-CBtdmwt8.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-Do4ZnO8S.css">
+    <style>
+      /* Fix: prevent GPU rendering artifacts (matrix/glitch effect) on mobile
+         caused by mix-blend-mode:screen on large blurred background orbs */
+      .mix-blend-screen { mix-blend-mode: normal !important; }
+
+      /* Fix: prevent blank-page flash while maintenance status loads */
+      #root:empty { display: none; }
+
+      /* Fix: smoother page transitions — prevent Framer Motion re-animations
+         from looking like glitch/duplicate text on slow networks */
+      .font-display { will-change: auto !important; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
