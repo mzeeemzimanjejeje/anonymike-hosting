@@ -61975,6 +61975,25 @@ router3.get("/bots/:botId/logs", async (req, res) => {
     res.status(502).json({ error: "Could not fetch logs from panel. Try again." });
   }
 });
+router3.get("/bots/:botId/console-ws", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const { botId } = req.params;
+  const userId = req.user.id;
+  const [bot] = await db.select().from(botsTable).where(and(eq(botsTable.id, botId), eq(botsTable.userId, userId)));
+  if (!bot) { res.status(404).json({ error: "Bot not found" }); return; }
+  if (!bot.pterodactylServerId || !pterodactyl.hasClientAccess()) {
+    res.status(503).json({ error: "No panel integration" }); return;
+  }
+  try {
+    const data = await clientRequest("GET", `/servers/${bot.pterodactylServerId}/websocket`);
+    const { token, socket } = data?.data ?? {};
+    if (!token || !socket) throw new Error("No WebSocket credentials returned");
+    res.json({ token, socket });
+  } catch (err) {
+    logger.warn({ err, botId }, "Failed to get console WebSocket credentials");
+    res.status(502).json({ error: "Could not get console credentials. Is the bot server online?" });
+  }
+});
 router3.get("/bots/:botId/resources", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Unauthorized" });
