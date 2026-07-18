@@ -61371,8 +61371,12 @@ var pterodactyl = {
   deleteServerFromPanel,
   getServerInternalId,
   testConnection,
-  // isConfigured: true when at minimum the client key is set (enough for power/status ops)
-  isConfigured: () => Boolean(BASE && CLIENT_KEY),
+  // isConfigured: any key present (used for generic "is Pterodactyl set up?" checks)
+  isConfigured: () => Boolean(BASE && (KEY || CLIENT_KEY)),
+  // hasClientAccess: CLIENT_KEY available → power signals, files, resources
+  hasClientAccess: () => Boolean(BASE && CLIENT_KEY),
+  // hasAppAccess: Application key → create/delete/list servers via App API
+  hasAppAccess: () => Boolean(BASE && KEY && isAppKey()),
   isAppKey
 };
 
@@ -61417,7 +61421,7 @@ function normalizeBotResponse(bot, liveStatus) {
   };
 }
 async function getLiveStatus(bot) {
-  if (!bot.pterodactylServerId || !pterodactyl.isConfigured()) {
+  if (!bot.pterodactylServerId || !pterodactyl.hasClientAccess()) {
     return bot.status;
   }
   try {
@@ -61470,7 +61474,7 @@ router3.post("/bots", async (req, res) => {
     status: "starting",
     expiresAt
   }).returning();
-  if (pteroServerId && pterodactyl.isConfigured()) {
+  if (pteroServerId && pterodactyl.hasClientAccess()) {
     try {
       const [botCfg] = await db.select().from(botSettingsTable).where(eq(botSettingsTable.botTypeId, botType ?? "")).limit(1);
       const envKey = botCfg?.sessionEnvKey ?? "SESSION_ID";
@@ -61559,7 +61563,12 @@ router3.post("/bots/renew", async (req, res) => {
   const baseDate = bot.expiresAt && bot.expiresAt > /* @__PURE__ */ new Date() ? bot.expiresAt : /* @__PURE__ */ new Date();
   const newExpiresAt = new Date(baseDate.getTime() + THIRTY_DAYS_MS);
   const [updatedBot] = await db.update(botsTable).set({ status: "starting", expiresAt: newExpiresAt }).where(eq(botsTable.id, botId)).returning();
-  if (bot.pterodactylServerId && pterodactyl.isConfigured()) {
+  if (bot.pterodactylServerId) {
+    if (!pterodactyl.hasClientAccess()) {
+      await db.update(botsTable).set({ status: "stopped" }).where(eq(botsTable.id, botId));
+      res.status(503).json({ error: "Panel client key not configured — cannot start bot after renew. Contact support." });
+      return;
+    }
     try {
       await pterodactyl.sendPowerSignal(bot.pterodactylServerId, "start");
       await db.update(botsTable).set({ status: "running" }).where(eq(botsTable.id, botId));
@@ -61600,8 +61609,12 @@ router3.post("/bots/start-bot", async (req, res) => {
     res.status(400).json({ error: "Subscription expired. Please renew your bot to continue." });
     return;
   }
+  if (bot.pterodactylServerId && !pterodactyl.hasClientAccess()) {
+    res.status(503).json({ error: "Panel client key not configured — cannot send start signal. Contact support." });
+    return;
+  }
   await db.update(botsTable).set({ status: "starting" }).where(eq(botsTable.id, botId));
-  if (bot.pterodactylServerId && pterodactyl.isConfigured()) {
+  if (bot.pterodactylServerId) {
     try {
       await pterodactyl.sendPowerSignal(bot.pterodactylServerId, "start");
       await db.update(botsTable).set({ status: "running" }).where(eq(botsTable.id, botId));
@@ -61633,8 +61646,12 @@ router3.post("/bots/stop-bot", async (req, res) => {
     res.status(404).json({ error: "Bot not found" });
     return;
   }
+  if (bot.pterodactylServerId && !pterodactyl.hasClientAccess()) {
+    res.status(503).json({ error: "Panel client key not configured — cannot send stop signal. Contact support." });
+    return;
+  }
   await db.update(botsTable).set({ status: "stopping" }).where(eq(botsTable.id, botId));
-  if (bot.pterodactylServerId && pterodactyl.isConfigured()) {
+  if (bot.pterodactylServerId) {
     try {
       await pterodactyl.sendPowerSignal(bot.pterodactylServerId, "stop");
     } catch (err) {
@@ -61666,8 +61683,12 @@ router3.post("/bots/restart-bot", async (req, res) => {
     res.status(400).json({ error: "Subscription expired. Renew before restarting." });
     return;
   }
-  if (!bot.pterodactylServerId || !pterodactyl.isConfigured()) {
+  if (!bot.pterodactylServerId) {
     res.status(400).json({ error: "This bot is not linked to a Pterodactyl server." });
+    return;
+  }
+  if (!pterodactyl.hasClientAccess()) {
+    res.status(503).json({ error: "Panel client key not configured — cannot send restart signal. Contact support." });
     return;
   }
   await db.update(botsTable).set({ status: "starting" }).where(eq(botsTable.id, botId));
@@ -61766,7 +61787,7 @@ router3.get("/bots/:botId/logs", async (req, res) => {
     res.status(404).json({ error: "Bot not found" });
     return;
   }
-  if (!bot.pterodactylServerId || !pterodactyl.isConfigured()) {
+  if (!bot.pterodactylServerId || !pterodactyl.hasClientAccess()) {
     res.json({ logs: [], message: "No panel integration" });
     return;
   }
@@ -61790,7 +61811,7 @@ router3.get("/bots/:botId/resources", async (req, res) => {
     res.status(404).json({ error: "Bot not found" });
     return;
   }
-  if (!bot.pterodactylServerId || !pterodactyl.isConfigured()) {
+  if (!bot.pterodactylServerId || !pterodactyl.hasClientAccess()) {
     res.json({
       available: false,
       message: "No panel integration — resource metrics unavailable",
@@ -61818,14 +61839,18 @@ router3.delete("/bots/:botId", async (req, res) => {
     res.status(404).json({ error: "Bot not found" });
     return;
   }
-  if (bot.pterodactylServerId && pterodactyl.isConfigured()) {
-    try {
-      await pterodactyl.sendPowerSignal(bot.pterodactylServerId, "stop");
-      logger.info({ botId, pteroId: bot.pterodactylServerId }, "Stopped server before delete");
-    } catch (err) {
-      logger.warn({ err, botId }, "Failed to stop Pterodactyl server before delete \u2014 continuing anyway");
+  if (bot.pterodactylServerId) {
+    // Stop the server (needs client key) — best-effort, never blocks deletion
+    if (pterodactyl.hasClientAccess()) {
+      try {
+        await pterodactyl.sendPowerSignal(bot.pterodactylServerId, "stop");
+        logger.info({ botId, pteroId: bot.pterodactylServerId }, "Stopped server before delete");
+      } catch (err) {
+        logger.warn({ err, botId }, "Failed to stop Pterodactyl server before delete \u2014 continuing anyway");
+      }
     }
-    if (pterodactyl.isAppKey()) {
+    // Delete from panel (needs app key) — independently gated, best-effort
+    if (pterodactyl.hasAppAccess()) {
       try {
         const internalId = await pterodactyl.getServerInternalId(bot.pterodactylServerId);
         if (internalId) {
@@ -62353,8 +62378,8 @@ router8.get("/pterodactyl/test", async (req, res) => {
 });
 router8.get("/pterodactyl/resources/:serverId", async (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: "Forbidden" });
-  if (!pterodactyl.isConfigured()) {
-    return res.status(503).json({ error: "Pterodactyl not configured" });
+  if (!pterodactyl.hasClientAccess()) {
+    return res.status(503).json({ error: "Pterodactyl client key not configured" });
   }
   try {
     const resources = await pterodactyl.getServerResources(req.params.serverId);
