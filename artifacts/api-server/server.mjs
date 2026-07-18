@@ -51227,6 +51227,15 @@ var botSettingsTable = pgTable("bot_settings", {
   autoSetup: boolean("auto_setup").notNull().default(false),
   configFilePath: varchar("config_file_path").default("/home/container/.env"),
   configFileFormat: varchar("config_file_format").default("env"),
+  // Auto-provisioning config (overrides global settings per bot type)
+  eggId: integer("egg_id"),
+  dockerImage: varchar("docker_image"),
+  startupCommand: text("startup_command"),
+  memoryLimit: integer("memory_limit"),
+  diskLimit: integer("disk_limit"),
+  cpuLimit: integer("cpu_limit"),
+  locationIds: varchar("location_ids"),
+  pterodactylUserId: integer("pterodactyl_user_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => /* @__PURE__ */ new Date())
 });
@@ -61398,7 +61407,98 @@ var logger = (0, import_pino.default)({
   }
 });
 
-// src/routes/bots.ts
+// src/routes/bots.ts — provisioning helpers
+async function getSettingValue(key) {
+  const row = await db.query.settingsTable.findFirst({ where: eq(settingsTable.key, key) });
+  return row?.value ?? null;
+}
+async function getEggDefaults(eggId) {
+  // Fetch egg details from Pterodactyl App API to get docker_image and startup defaults
+  try {
+    const data = await appRequest("GET", `/nests/eggs/${eggId}?include=variables`);
+    return {
+      dockerImage: data?.attributes?.docker_image ?? null,
+      startup: data?.attributes?.startup ?? null
+    };
+  } catch {
+    return { dockerImage: null, startup: null };
+  }
+}
+async function getProvisionConfig(botTypeId) {
+  // Per-type settings take priority over global settings
+  let typeCfg = null;
+  if (botTypeId) {
+    const rows = await db.select().from(botSettingsTable).where(eq(botSettingsTable.botTypeId, botTypeId)).limit(1);
+    typeCfg = rows[0] ?? null;
+  }
+  // Helper: resolve value from per-type then global setting
+  async function resolve(typeVal, globalKey) {
+    if (typeVal != null) return typeVal;
+    const g = await getSettingValue(globalKey);
+    return g;
+  }
+  const eggIdRaw = await resolve(typeCfg?.eggId ?? null, "ptero_egg_id");
+  const eggId = eggIdRaw != null ? Number(eggIdRaw) : null;
+  if (!eggId) return null; // auto-provision not configured
+  const userIdRaw = await resolve(typeCfg?.pterodactylUserId ?? null, "ptero_user_id");
+  const userId2 = userIdRaw != null ? Number(userIdRaw) : null;
+  if (!userId2) return null; // no panel user configured
+  const locationIdsRaw = await resolve(typeCfg?.locationIds ?? null, "ptero_location_ids");
+  const locationIds = locationIdsRaw
+    ? locationIdsRaw.split(",").map((s) => Number(s.trim())).filter(Boolean)
+    : [];
+  if (locationIds.length === 0) return null; // no deployment locations configured
+  const memory = Number((await resolve(typeCfg?.memoryLimit ?? null, "ptero_memory")) ?? 512);
+  const disk = Number((await resolve(typeCfg?.diskLimit ?? null, "ptero_disk")) ?? 1024);
+  const cpu = Number((await resolve(typeCfg?.cpuLimit ?? null, "ptero_cpu")) ?? 100);
+  const dockerImageOverride = await resolve(typeCfg?.dockerImage ?? null, "ptero_docker_image");
+  const startupOverride = await resolve(typeCfg?.startupCommand ?? null, "ptero_startup");
+  const environmentJson = await getSettingValue("ptero_environment");
+  let environment = {};
+  if (environmentJson) {
+    try { environment = JSON.parse(environmentJson); } catch {}
+  }
+  // If docker_image or startup not provided, fetch from egg
+  let dockerImage = dockerImageOverride;
+  let startup = startupOverride;
+  if (!dockerImage || !startup) {
+    const eggDefaults = await getEggDefaults(eggId);
+    if (!dockerImage) dockerImage = eggDefaults.dockerImage;
+    if (!startup) startup = eggDefaults.startup;
+  }
+  return { eggId, userId: userId2, locationIds, memory, disk, cpu, dockerImage, startup, environment };
+}
+async function autoProvisionServer(botName, userId3, provisionCfg) {
+  // Build the Pterodactyl create-server payload
+  const safeName = `${botName.replace(/[^a-zA-Z0-9 _-]/g, "").slice(0, 32)}-${userId3.slice(0, 8)}`;
+  const payload = {
+    name: safeName,
+    user: provisionCfg.userId,
+    egg: provisionCfg.eggId,
+    docker_image: provisionCfg.dockerImage ?? "ghcr.io/parkervcp/yolks:nodejs_18",
+    startup: provisionCfg.startup ?? "node index.js",
+    environment: provisionCfg.environment ?? {},
+    limits: {
+      memory: provisionCfg.memory,
+      swap: 0,
+      disk: provisionCfg.disk,
+      io: 500,
+      cpu: provisionCfg.cpu
+    },
+    feature_limits: { databases: 0, backups: 1 },
+    deploy: {
+      locations: provisionCfg.locationIds,
+      dedicated_ip: false,
+      port_range: []
+    }
+  };
+  const created = await pterodactyl.createServer(payload);
+  // Return the short identifier (used by client API) and numeric id (used by app API)
+  return {
+    identifier: created?.identifier ?? null,
+    internalId: created?.id ?? null
+  };
+}
 var router3 = (0, import_express3.Router)();
 var THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1e3;
 function mapPteroStatus(s) {
@@ -61467,7 +61567,23 @@ router3.post("/bots", async (req, res) => {
     await db.update(usersTable).set({ coins: user.coins - coinsPerMonth }).where(eq(usersTable.id, userId));
   }
   const expiresAt = new Date(Date.now() + THIRTY_DAYS_MS);
-  const pteroServerId = pterodactylServerId ?? null;
+  // Determine pterodactyl server: use override from body if provided, else auto-provision
+  let pteroServerId = pterodactylServerId ?? null;
+  if (!pteroServerId && pterodactyl.hasAppAccess()) {
+    try {
+      const provisionCfg = await getProvisionConfig(botType ?? null);
+      if (provisionCfg) {
+        logger.info({ botType, userId }, "Auto-provisioning Pterodactyl server for new bot");
+        const { identifier } = await autoProvisionServer(name, userId, provisionCfg);
+        if (identifier) {
+          pteroServerId = identifier;
+          logger.info({ pteroServerId, userId }, "Pterodactyl server provisioned successfully");
+        }
+      }
+    } catch (err) {
+      logger.error({ err, userId }, "Auto-provision Pterodactyl server failed — continuing without panel server");
+    }
+  }
   const [bot] = await db.insert(botsTable).values({
     id: sql`gen_random_uuid()`,
     userId,
@@ -62393,6 +62509,46 @@ router8.get("/pterodactyl/resources/:serverId", async (req, res) => {
     return res.status(502).json({ error: err?.message ?? "Failed to fetch resources" });
   }
 });
+// Global Pterodactyl provisioning settings (stored in key/value settings table)
+var PTERO_SETTING_KEYS = [
+  "ptero_egg_id",
+  "ptero_user_id",
+  "ptero_location_ids",
+  "ptero_docker_image",
+  "ptero_startup",
+  "ptero_environment",
+  "ptero_memory",
+  "ptero_disk",
+  "ptero_cpu"
+];
+router8.get("/admin/ptero-settings", async (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: "Forbidden" });
+  const rows = await db.select().from(settingsTable).where(
+    sql`${settingsTable.key} = ANY(${sql.raw(`ARRAY[${PTERO_SETTING_KEYS.map((k) => `'${k}'`).join(",")}]`)})` 
+  );
+  const result = {};
+  for (const key of PTERO_SETTING_KEYS) result[key] = null;
+  for (const row of rows) result[row.key] = row.value;
+  return res.json({ settings: result });
+});
+router8.put("/admin/ptero-settings", async (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: "Forbidden" });
+  const updates = req.body ?? {};
+  const allowed = new Set(PTERO_SETTING_KEYS);
+  const saved = {};
+  for (const [key, value] of Object.entries(updates)) {
+    if (!allowed.has(key)) continue;
+    const strVal = value == null || value === "" ? null : String(value);
+    if (strVal === null) {
+      await db.delete(settingsTable).where(eq(settingsTable.key, key));
+      saved[key] = null;
+    } else {
+      await db.insert(settingsTable).values({ key, value: strVal }).onConflictDoUpdate({ target: settingsTable.key, set: { value: strVal, updatedAt: new Date() } });
+      saved[key] = strVal;
+    }
+  }
+  return res.json({ success: true, saved });
+});
 var admin_default = router8;
 
 // src/routes/bot-settings.ts
@@ -62439,7 +62595,16 @@ router9.put("/admin/bot-settings/:botTypeId", async (req, res) => {
     envTemplate,
     autoSetup,
     configFilePath,
-    configFileFormat
+    configFileFormat,
+    // Auto-provisioning fields
+    eggId,
+    dockerImage,
+    startupCommand,
+    memoryLimit,
+    diskLimit,
+    cpuLimit,
+    locationIds,
+    pterodactylUserId
   } = req.body;
   const values = { botTypeId, updatedAt: /* @__PURE__ */ new Date() };
   if (typeof disabled === "boolean") values.disabled = disabled;
@@ -62454,6 +62619,15 @@ router9.put("/admin/bot-settings/:botTypeId", async (req, res) => {
   if (typeof autoSetup === "boolean") values.autoSetup = autoSetup;
   if (configFilePath !== void 0) values.configFilePath = configFilePath || "/home/container/.env";
   if (configFileFormat !== void 0) values.configFileFormat = configFileFormat || "env";
+  // Auto-provisioning fields
+  if (eggId !== void 0) values.eggId = eggId != null ? Number(eggId) : null;
+  if (dockerImage !== void 0) values.dockerImage = dockerImage || null;
+  if (startupCommand !== void 0) values.startupCommand = startupCommand || null;
+  if (memoryLimit !== void 0) values.memoryLimit = memoryLimit != null ? Number(memoryLimit) : null;
+  if (diskLimit !== void 0) values.diskLimit = diskLimit != null ? Number(diskLimit) : null;
+  if (cpuLimit !== void 0) values.cpuLimit = cpuLimit != null ? Number(cpuLimit) : null;
+  if (locationIds !== void 0) values.locationIds = locationIds || null;
+  if (pterodactylUserId !== void 0) values.pterodactylUserId = pterodactylUserId != null ? Number(pterodactylUserId) : null;
   const [row] = await db.insert(botSettingsTable).values({ botTypeId, ...values }).onConflictDoUpdate({ target: botSettingsTable.botTypeId, set: values }).returning();
   return res.json({ setting: row });
 });

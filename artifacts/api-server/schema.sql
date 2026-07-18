@@ -71,9 +71,28 @@ CREATE TABLE IF NOT EXISTS "bot_settings" (
   "auto_setup" boolean NOT NULL DEFAULT false,
   "config_file_path" varchar DEFAULT '/home/container/.env',
   "config_file_format" varchar DEFAULT 'env',
+  -- Auto-provisioning overrides (per bot type; fall back to global settings)
+  "egg_id" integer,
+  "docker_image" varchar,
+  "startup_command" text,
+  "memory_limit" integer,
+  "disk_limit" integer,
+  "cpu_limit" integer,
+  "location_ids" varchar,
+  "pterodactyl_user_id" integer,
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now()
 );
+
+-- Migrate existing bot_settings tables that predate the provisioning columns
+ALTER TABLE "bot_settings" ADD COLUMN IF NOT EXISTS "egg_id" integer;
+ALTER TABLE "bot_settings" ADD COLUMN IF NOT EXISTS "docker_image" varchar;
+ALTER TABLE "bot_settings" ADD COLUMN IF NOT EXISTS "startup_command" text;
+ALTER TABLE "bot_settings" ADD COLUMN IF NOT EXISTS "memory_limit" integer;
+ALTER TABLE "bot_settings" ADD COLUMN IF NOT EXISTS "disk_limit" integer;
+ALTER TABLE "bot_settings" ADD COLUMN IF NOT EXISTS "cpu_limit" integer;
+ALTER TABLE "bot_settings" ADD COLUMN IF NOT EXISTS "location_ids" varchar;
+ALTER TABLE "bot_settings" ADD COLUMN IF NOT EXISTS "pterodactyl_user_id" integer;
 
 -- Transactions (M-Pesa/Payflow payments)
 CREATE TABLE IF NOT EXISTS "transactions" (

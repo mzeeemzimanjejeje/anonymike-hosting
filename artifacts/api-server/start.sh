@@ -2,18 +2,19 @@
 # ============================================================
 #  ANONYMIKETECH — Full self-contained startup
 #  Pterodactyl startup command: bash artifacts/api-server/start.sh
-#  Does everything: env → pull → deps → schema → start
+#  Does everything: pull → deps → schema → start
+#
+#  All secrets (DATABASE_URL, NEON_DATABASE_URL, SESSION_SECRET,
+#  PTERODACTYL_URL, PTERODACTYL_API_KEY, PTERODACTYL_CLIENT_KEY,
+#  ADMIN_EMAILS) must be injected via environment variables —
+#  never hardcode them here.
 # ============================================================
 
-# ── Environment Variables ────────────────────────────────────
-export DATABASE_URL="postgresql://postgres:password@helium/heliumdb?sslmode=disable"
-export NEON_DATABASE_URL="postgresql://neondb_owner:npg_YBtI6ULyA5cP@ep-lively-feather-atdq7jna-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-export SESSION_SECRET="1lw7AgPiIUJd64IEZrN59Iih5shcNqGWRuMJk9NzAf5K/ejMpEYZeblVyxbFK+OcI6WseT4FP4fyHMZzT/kapQ=="
-export PTERODACTYL_URL="apps.courtneytech.xyz"
-export PTERODACTYL_API_KEY="ptla_Lc8SUEwKo2HL8nOrFIwPbnazSz02xoFTX6nGhgzXFYy"
-export PTERODACTYL_CLIENT_KEY="ptlc_7POw4D6GuFv981xOr5OJwkuaCPXtgsw4E30257OSsQF"
-export ADMIN_EMAILS="admin@anonymiketech.online"
-export NODE_ENV="production"
+# Fail fast if required secrets are missing
+: "${DATABASE_URL:?DATABASE_URL must be set}"
+: "${SESSION_SECRET:?SESSION_SECRET must be set}"
+
+export NODE_ENV="${NODE_ENV:-production}"
 
 # ── Pull latest code from GitHub ─────────────────────────────
 echo "[1/4] Pulling latest code from GitHub..."
