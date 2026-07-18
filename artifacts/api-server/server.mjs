@@ -61785,6 +61785,37 @@ router4.post("/users/add-coins", async (req, res) => {
   const [updated] = await db.update(usersTable).set({ coins: user.coins + amount }).where(eq(usersTable.id, userId)).returning();
   return res.json(userPayload(updated));
 });
+router4.post("/users/transfer-coins", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  const { recipientEmail, amount } = req.body;
+  if (!recipientEmail || typeof recipientEmail !== "string") {
+    return res.status(400).json({ error: "recipientEmail is required" });
+  }
+  const parsed = Math.floor(Number(amount));
+  if (!amount || isNaN(parsed) || parsed < 1) {
+    return res.status(400).json({ error: "amount must be a positive integer" });
+  }
+  const senderId = req.user.id;
+  const [sender] = await db.select().from(usersTable).where(eq(usersTable.id, senderId));
+  if (!sender) return res.status(404).json({ error: "Sender not found" });
+  if (sender.coins < parsed) {
+    return res.status(400).json({ error: `Insufficient coins. You have ${sender.coins} coins.` });
+  }
+  const email = recipientEmail.toLowerCase().trim();
+  const [recipient] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+  if (!recipient) return res.status(404).json({ error: "No account found with that email." });
+  if (recipient.id === senderId) {
+    return res.status(400).json({ error: "You cannot send coins to yourself." });
+  }
+  const [updatedSender] = await db.update(usersTable).set({ coins: sender.coins - parsed }).where(eq(usersTable.id, senderId)).returning();
+  await db.update(usersTable).set({ coins: recipient.coins + parsed }).where(eq(usersTable.id, recipient.id));
+  const senderName = sender.firstName || sender.email || "Someone";
+  await createNotification(senderId, "success", "Coins Sent \uD83D\uDCB8", `You sent ${parsed} coins to ${recipient.email}.`);
+  await createNotification(recipient.id, "success", "Coins Received \uD83D\uDCB0", `${senderName} sent you ${parsed} coins!`);
+  return res.json({ success: true, coins: updatedSender.coins, message: `${parsed} coins sent to ${recipient.email}` });
+});
 var users_default = router4;
 
 // src/routes/payments.ts

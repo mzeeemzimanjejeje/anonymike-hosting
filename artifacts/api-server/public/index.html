@@ -21,5 +21,208 @@
   </head>
   <body>
     <div id="root"></div>
+  <!-- Share Coins Feature -->
+  <style>
+    #amt-share-fab {
+      position: fixed;
+      bottom: 84px;
+      right: 18px;
+      z-index: 9999;
+      background: #00e599;
+      color: #0a0a0a;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 24px rgba(0,229,153,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    #amt-share-fab:hover { transform: scale(1.05); box-shadow: 0 6px 32px rgba(0,229,153,0.5); }
+    #amt-share-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+    }
+    #amt-share-overlay.open { display: flex; }
+    #amt-share-modal {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 28px 24px;
+      width: 92%;
+      max-width: 400px;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+    }
+    #amt-share-modal h2 { margin: 0 0 4px; font-size: 20px; font-weight: 700; }
+    #amt-share-modal p { margin: 0 0 20px; font-size: 13px; color: #888; }
+    #amt-share-modal label { display: block; font-size: 12px; font-weight: 600; color: #aaa; margin-bottom: 6px; }
+    #amt-share-modal input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #amt-share-modal input:focus { border-color: #00e599; }
+    #amt-share-balance { font-size: 12px; color: #888; margin-bottom: 18px; }
+    #amt-share-balance span { color: #00e599; font-weight: 700; }
+    #amt-share-send {
+      width: 100%;
+      background: #00e599;
+      color: #0a0a0a;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    #amt-share-send:disabled { opacity: 0.5; cursor: not-allowed; }
+    #amt-share-cancel {
+      width: 100%;
+      background: transparent;
+      color: #666;
+      border: none;
+      padding: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    #amt-share-msg { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; }
+    #amt-share-msg.success { color: #00e599; }
+    #amt-share-msg.error { color: #ff4d4d; }
+  </style>
+
+  <!-- FAB button -->
+  <button id="amt-share-fab">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Share Coins
+  </button>
+
+  <!-- Modal -->
+  <div id="amt-share-overlay">
+    <div id="amt-share-modal">
+      <h2>🪙 Share Coins</h2>
+      <p>Send coins to another ANONYMIKETECH user instantly.</p>
+      <label for="amt-share-email">Recipient Email</label>
+      <input id="amt-share-email" type="email" placeholder="friend@example.com" autocomplete="off" />
+      <label for="amt-share-amount">Amount</label>
+      <input id="amt-share-amount" type="number" placeholder="e.g. 100" min="1" />
+      <div id="amt-share-balance">Your balance: <span id="amt-share-bal-val">—</span> coins</div>
+      <button id="amt-share-send">Send Coins</button>
+      <button id="amt-share-cancel">Cancel</button>
+      <div id="amt-share-msg"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const fab = document.getElementById('amt-share-fab');
+      const overlay = document.getElementById('amt-share-overlay');
+      const emailInput = document.getElementById('amt-share-email');
+      const amountInput = document.getElementById('amt-share-amount');
+      const sendBtn = document.getElementById('amt-share-send');
+      const cancelBtn = document.getElementById('amt-share-cancel');
+      const msg = document.getElementById('amt-share-msg');
+      const balVal = document.getElementById('amt-share-bal-val');
+
+      let myCoins = null;
+
+      async function fetchMe() {
+        try {
+          const r = await fetch('/api/users/me', { credentials: 'include' });
+          if (!r.ok) return null;
+          return await r.json();
+        } catch { return null; }
+      }
+
+      async function init() {
+        const user = await fetchMe();
+        if (!user) { setTimeout(init, 3000); return; }
+        myCoins = user.coins;
+        balVal.textContent = myCoins.toLocaleString();
+        fab.style.display = 'flex';
+      }
+
+      fab.addEventListener('click', async () => {
+        msg.textContent = '';
+        msg.className = '';
+        emailInput.value = '';
+        amountInput.value = '';
+        const user = await fetchMe();
+        if (user) { myCoins = user.coins; balVal.textContent = myCoins.toLocaleString(); }
+        overlay.classList.add('open');
+        emailInput.focus();
+      });
+
+      function closeModal() { overlay.classList.remove('open'); }
+      cancelBtn.addEventListener('click', closeModal);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+      sendBtn.addEventListener('click', async () => {
+        msg.textContent = '';
+        msg.className = '';
+        const email = emailInput.value.trim();
+        const amount = parseInt(amountInput.value, 10);
+        if (!email) { msg.textContent = 'Please enter a recipient email.'; msg.className = 'error'; return; }
+        if (!amount || amount < 1) { msg.textContent = 'Please enter a valid amount.'; msg.className = 'error'; return; }
+        if (myCoins !== null && amount > myCoins) { msg.textContent = `Not enough coins. You have ${myCoins.toLocaleString()}.`; msg.className = 'error'; return; }
+
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending…';
+        try {
+          const r = await fetch('/api/users/transfer-coins', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipientEmail: email, amount })
+          });
+          const data = await r.json();
+          if (!r.ok) {
+            msg.textContent = data.error || 'Transfer failed.';
+            msg.className = 'error';
+          } else {
+            myCoins = data.coins;
+            balVal.textContent = myCoins.toLocaleString();
+            msg.textContent = data.message || 'Coins sent successfully!';
+            msg.className = 'success';
+            emailInput.value = '';
+            amountInput.value = '';
+          }
+        } catch (e) {
+          msg.textContent = 'Network error. Please try again.';
+          msg.className = 'error';
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Send Coins';
+        }
+      });
+
+      // Start polling until user is logged in
+      init();
+    })();
+  </script>
   </body>
 </html>
