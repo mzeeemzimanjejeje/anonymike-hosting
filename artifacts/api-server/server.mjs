@@ -61086,8 +61086,20 @@ var auth_default = router2;
 var import_express3 = __toESM(require_express2(), 1);
 
 // src/services/pterodactyl.ts
-var BASE = process.env.PTERODACTYL_URL?.replace(/\/$/, "");
-var KEY = process.env.PTERODACTYL_API_KEY;
+// ── Pterodactyl dual-key support ──────────────────────────────────────────
+// PTERODACTYL_API_KEY     → Application key (ptla_…) for server CRUD
+// PTERODACTYL_CLIENT_KEY  → Client key      (ptlc_…) for power/files/resources
+//   If only a client key is supplied, it goes into both slots.
+//   If only an application key is supplied, client ops will fail until a
+//   client key is also added via PTERODACTYL_CLIENT_KEY.
+var _rawPteroUrl = process.env.PTERODACTYL_URL?.trim() ?? "";
+if (_rawPteroUrl && !/^https?:\/\//i.test(_rawPteroUrl)) {
+  _rawPteroUrl = "https://" + _rawPteroUrl;
+}
+var BASE = _rawPteroUrl.replace(/\/$/, "") || undefined;
+var KEY = process.env.PTERODACTYL_API_KEY?.trim() || undefined;
+// CLIENT_KEY: explicit client key wins; fall back to KEY only when KEY is itself a client key
+var CLIENT_KEY = process.env.PTERODACTYL_CLIENT_KEY?.trim() || (KEY && !KEY.startsWith("ptla_") ? KEY : undefined);
 function isAppKey() {
   return KEY?.startsWith("ptla_") ?? false;
 }
@@ -61104,14 +61116,24 @@ function headers2() {
     "Content-Type": "application/json"
   };
 }
+function clientHeaders() {
+  return {
+    "Authorization": `Bearer ${CLIENT_KEY}`,
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+  };
+}
 async function clientRequest(method, path2, body) {
-  if (!BASE || !KEY) {
-    throw new Error("Pterodactyl not configured (PTERODACTYL_URL / PTERODACTYL_API_KEY missing)");
+  if (!BASE || !CLIENT_KEY) {
+    const hint = !CLIENT_KEY && isAppKey()
+      ? "Set PTERODACTYL_CLIENT_KEY (a ptlc_ key) for power/files/resources operations"
+      : "Pterodactyl not configured (PTERODACTYL_URL / PTERODACTYL_API_KEY missing)";
+    throw new Error(hint);
   }
   const url = `${clientBase()}${path2}`;
   const res = await fetch(url, {
     method,
-    headers: headers2(),
+    headers: clientHeaders(),
     body: body ? JSON.stringify(body) : void 0
   });
   if (res.status === 204) return null;
@@ -61182,14 +61204,14 @@ async function listServers() {
   }
 }
 async function writeFile(serverId, filePath, content) {
-  if (!BASE || !KEY) {
-    throw new Error("Pterodactyl not configured (PTERODACTYL_URL / PTERODACTYL_API_KEY missing)");
+  if (!BASE || !CLIENT_KEY) {
+    throw new Error("Pterodactyl client key not configured (PTERODACTYL_CLIENT_KEY missing)");
   }
   const url = `${BASE}/api/client/servers/${serverId}/files/write?file=${encodeURIComponent(filePath)}`;
   const res = await fetch(url, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${KEY}`,
+      "Authorization": `Bearer ${CLIENT_KEY}`,
       "Content-Type": "text/plain"
     },
     body: content
@@ -61199,14 +61221,14 @@ async function writeFile(serverId, filePath, content) {
   throw new Error(`Pterodactyl writeFile ${filePath} \u2192 ${res.status}: ${text2}`);
 }
 async function readFile(serverId, filePath) {
-  if (!BASE || !KEY) {
-    throw new Error("Pterodactyl not configured");
+  if (!BASE || !CLIENT_KEY) {
+    throw new Error("Pterodactyl client key not configured (PTERODACTYL_CLIENT_KEY missing)");
   }
   const url = `${BASE}/api/client/servers/${serverId}/files/contents?file=${encodeURIComponent(filePath)}`;
   const res = await fetch(url, {
     method: "GET",
     headers: {
-      "Authorization": `Bearer ${KEY}`,
+      "Authorization": `Bearer ${CLIENT_KEY}`,
       "Accept": "text/plain"
     }
   });
@@ -61273,11 +61295,11 @@ async function autoSetupRepo(serverId, repoUrl) {
   await sendCommand(serverId, "npm install --omit=dev 2>&1 || npm install 2>&1");
 }
 async function getServerActivity(serverId) {
-  if (!BASE || !KEY) {
-    throw new Error("Pterodactyl not configured");
+  if (!BASE || !CLIENT_KEY) {
+    throw new Error("Pterodactyl client key not configured (PTERODACTYL_CLIENT_KEY missing)");
   }
   const url = `${clientBase()}/servers/${serverId}/activity`;
-  const res = await fetch(url, { method: "GET", headers: headers2() });
+  const res = await fetch(url, { method: "GET", headers: clientHeaders() });
   if (!res.ok) {
     const text2 = await res.text();
     throw new Error(`Pterodactyl activity ${res.status}: ${text2}`);
