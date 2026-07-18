@@ -61484,13 +61484,15 @@ async function getProvisionConfig(botTypeId) {
 async function autoProvisionServer(botName, userId3, provisionCfg) {
   // Build the Pterodactyl create-server payload
   const safeName = `${botName.replace(/[^a-zA-Z0-9 _-]/g, "").slice(0, 32)}-${userId3.slice(0, 8)}`;
+  // CMD_START is required by the Node.js egg — always include it
+  const environment = { CMD_START: "node index.js", ...(provisionCfg.environment ?? {}) };
   const payload = {
     name: safeName,
     user: provisionCfg.userId,
     egg: provisionCfg.eggId,
     docker_image: provisionCfg.dockerImage,
-    startup: provisionCfg.startup ?? "node index.js",
-    environment: provisionCfg.environment ?? {},
+    startup: provisionCfg.startup,
+    environment,
     limits: {
       memory: provisionCfg.memory,
       swap: 0,
@@ -61506,11 +61508,52 @@ async function autoProvisionServer(botName, userId3, provisionCfg) {
     }
   };
   const created = await pterodactyl.createServer(payload);
-  // Return the short identifier (used by client API) and numeric id (used by app API)
   return {
     identifier: created?.identifier ?? null,
     internalId: created?.id ?? null
   };
+}
+async function waitForInstall(identifier, timeoutMs = 90000) {
+  // Poll the CLIENT resources endpoint until Wings reports a real power state
+  // (not installing). The App API "installing" flag clears before Wings is ready,
+  // so we rely on the client state being "offline" instead of null/undefined.
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const data = await clientRequest("GET", `/servers/${identifier}/resources`);
+      const state = data?.attributes?.current_state;
+      if (state === "offline" || state === "running" || state === "starting") return true;
+    } catch {}
+    await new Promise(r => setTimeout(r, 3000));
+  }
+  return false; // timed out
+}
+async function uploadBotFiles(serverId, repoUrl, sessionEnvKey, sessionValue) {
+  // Fetch and upload all files from the bot's GitHub repo to the server,
+  // and write the session .env in the same parallel batch to avoid lock races.
+  try {
+    const repoPath = repoUrl.replace(/^https?:\/\/github\.com\//,"").replace(/\.git$/,"");
+    const [owner, repo] = repoPath.split("/");
+    const apiRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/HEAD?recursive=1`,
+      { headers: { "Accept": "application/vnd.github+json", "User-Agent": "anonymiketech" } });
+    const tree = await apiRes.json();
+    // Skip .env from repo — we write our own session .env after
+    const files = (tree.tree ?? []).filter(f => f.type === "blob" && !f.path.includes("node_modules") && f.path !== ".env");
+    await Promise.all(files.map(async file => {
+      try {
+        const raw = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/HEAD/${file.path}`)
+          .then(r => r.text());
+        await pterodactyl.writeFile(serverId, `/${file.path}`, raw);
+      } catch {}
+    }));
+    // Write session .env AFTER all other files so it is never overwritten
+    if (sessionEnvKey && sessionValue) {
+      await pterodactyl.writeFile(serverId, "/.env", `${sessionEnvKey}=${sessionValue}\n`);
+    }
+    logger.info({ serverId, repo: repoPath, count: files.length }, "Bot files + session uploaded from GitHub");
+  } catch (err) {
+    logger.error({ err, serverId, repoUrl }, "Failed to upload bot files from GitHub");
+  }
 }
 var router3 = (0, import_express3.Router)();
 var THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1e3;
@@ -61587,10 +61630,14 @@ router3.post("/bots", async (req, res) => {
       const provisionCfg = await getProvisionConfig(botType ?? null);
       if (provisionCfg) {
         logger.info({ botType, userId }, "Auto-provisioning Pterodactyl server for new bot");
-        const { identifier } = await autoProvisionServer(name, userId, provisionCfg);
+        const { identifier, internalId } = await autoProvisionServer(name, userId, provisionCfg);
         if (identifier) {
           pteroServerId = identifier;
           logger.info({ pteroServerId, userId }, "Pterodactyl server provisioned successfully");
+          // Wait for Wings to finish installation before writing files
+          logger.info({ pteroServerId }, "Waiting for server install to complete…");
+          await waitForInstall(identifier);
+          logger.info({ pteroServerId }, "Server install complete — ready for file upload");
         }
       }
     } catch (err) {
@@ -61619,22 +61666,17 @@ router3.post("/bots", async (req, res) => {
       const configFileFormat = botCfg?.configFileFormat ?? "env";
       const effectivePteroId = botCfg?.pterodactylServerIdOverride ?? pteroServerId;
       logger.info({ botId: bot.id, pteroServerId, effectivePteroId, envKey, configFilePath, configFileFormat, hasTemplate: !!envTemplate }, "Injecting session into server config");
-      if (envTemplate) {
+      // Upload bot files + session in one parallel batch
+      if (repoUrl) {
+        logger.info({ botId: bot.id, repoUrl, envKey }, "Uploading bot files + session from GitHub repo");
+        await uploadBotFiles(effectivePteroId, repoUrl, envKey, sessionId);
+      } else if (envTemplate) {
         const rendered = envTemplate.replace(/\{session\}/g, sessionId);
         await pterodactyl.writeFile(effectivePteroId, configFilePath, rendered);
       } else {
         await pterodactyl.setEnvVar(effectivePteroId, envKey, sessionId, configFilePath, configFileFormat);
       }
-      if (shouldAutoSetup && repoUrl) {
-        logger.info({ botId: bot.id, repoUrl }, "Auto-setup: starting server to run git clone");
-        await pterodactyl.sendPowerSignal(effectivePteroId, "start");
-        await new Promise((r) => setTimeout(r, 5e3));
-        await pterodactyl.autoSetupRepo(effectivePteroId, repoUrl);
-        await new Promise((r) => setTimeout(r, 15e3));
-        await pterodactyl.sendPowerSignal(effectivePteroId, "restart");
-      } else {
-        await pterodactyl.sendPowerSignal(effectivePteroId, "start");
-      }
+      await pterodactyl.sendPowerSignal(effectivePteroId, "start");
       await db.update(botsTable).set({ status: "running" }).where(eq(botsTable.id, bot.id));
       logger.info({ botId: bot.id }, "Pterodactyl server started after session injection");
     } catch (err) {
