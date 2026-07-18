@@ -21,208 +21,440 @@
   </head>
   <body>
     <div id="root"></div>
-  <!-- Share Coins Feature -->
+  <!-- Share Coins Feature (v2) -->
   <style>
-    #amt-share-fab {
-      position: fixed;
-      bottom: 84px;
-      right: 18px;
-      z-index: 9999;
-      background: #00e599;
-      color: #0a0a0a;
-      border: none;
-      border-radius: 50px;
-      padding: 12px 20px;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 24px rgba(0,229,153,0.35);
+    #amt-fab {
+      position: fixed; bottom: 84px; right: 18px; z-index: 9999;
+      background: #00e599; color: #0a0a0a; border: none; border-radius: 50px;
+      padding: 12px 20px; font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: 14px; cursor: pointer; display: none; align-items: center;
+      gap: 8px; box-shadow: 0 4px 24px rgba(0,229,153,0.35);
       transition: transform 0.15s, box-shadow 0.15s;
     }
-    #amt-share-fab:hover { transform: scale(1.05); box-shadow: 0 6px 32px rgba(0,229,153,0.5); }
-    #amt-share-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 10000;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
-      align-items: center;
-      justify-content: center;
+    #amt-fab:hover { transform: scale(1.05); box-shadow: 0 6px 32px rgba(0,229,153,0.5); }
+    #amt-overlay {
+      display: none; position: fixed; inset: 0; z-index: 10000;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+      align-items: flex-end; justify-content: center;
     }
-    #amt-share-overlay.open { display: flex; }
-    #amt-share-modal {
-      background: #111;
-      border: 1px solid #222;
-      border-radius: 20px;
-      padding: 28px 24px;
-      width: 92%;
-      max-width: 400px;
-      font-family: 'Inter', sans-serif;
-      color: #fff;
+    #amt-overlay.open { display: flex; }
+    #amt-modal {
+      background: #111; border: 1px solid #1e1e1e; border-radius: 24px 24px 0 0;
+      padding: 24px 20px 32px; width: 100%; max-width: 480px;
+      font-family: 'Inter', sans-serif; color: #fff; max-height: 92vh; overflow-y: auto;
     }
-    #amt-share-modal h2 { margin: 0 0 4px; font-size: 20px; font-weight: 700; }
-    #amt-share-modal p { margin: 0 0 20px; font-size: 13px; color: #888; }
-    #amt-share-modal label { display: block; font-size: 12px; font-weight: 600; color: #aaa; margin-bottom: 6px; }
-    #amt-share-modal input {
-      width: 100%;
-      box-sizing: border-box;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 10px;
-      color: #fff;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      outline: none;
-      transition: border-color 0.2s;
+    .amt-drag { width: 40px; height: 4px; background: #333; border-radius: 2px; margin: 0 auto 20px; }
+    .amt-title { font-size: 18px; font-weight: 700; margin: 0 0 2px; }
+    .amt-sub { font-size: 13px; color: #777; margin: 0 0 18px; }
+    .amt-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .amt-tab {
+      flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #2a2a2a;
+      background: transparent; color: #888; font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
-    #amt-share-modal input:focus { border-color: #00e599; }
-    #amt-share-balance { font-size: 12px; color: #888; margin-bottom: 18px; }
-    #amt-share-balance span { color: #00e599; font-weight: 700; }
-    #amt-share-send {
-      width: 100%;
-      background: #00e599;
-      color: #0a0a0a;
-      border: none;
-      border-radius: 12px;
-      padding: 14px;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      transition: opacity 0.2s;
+    .amt-tab.active { background: #00e59920; border-color: #00e599; color: #00e599; }
+    .amt-panel { display: none; }
+    .amt-panel.active { display: block; }
+    /* Currency toggle */
+    .amt-currency-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .amt-currency-row label { font-size: 12px; font-weight: 600; color: #aaa; flex: 1; }
+    .amt-toggle { display: flex; background: #1a1a1a; border-radius: 8px; border: 1px solid #2a2a2a; overflow: hidden; }
+    .amt-toggle button {
+      padding: 5px 12px; border: none; background: transparent; color: #777;
+      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
     }
-    #amt-share-send:disabled { opacity: 0.5; cursor: not-allowed; }
-    #amt-share-cancel {
-      width: 100%;
-      background: transparent;
-      color: #666;
-      border: none;
-      padding: 12px;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 6px;
+    .amt-toggle button.active { background: #00e599; color: #0a0a0a; }
+    .amt-hint { font-size: 11px; color: #555; margin: -10px 0 12px; }
+    .amt-input {
+      width: 100%; box-sizing: border-box; background: #1a1a1a;
+      border: 1px solid #2a2a2a; border-radius: 12px; color: #fff;
+      font-family: 'Inter', sans-serif; font-size: 15px; padding: 13px 14px;
+      margin-bottom: 14px; outline: none; transition: border-color 0.2s;
     }
-    #amt-share-msg { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; }
-    #amt-share-msg.success { color: #00e599; }
-    #amt-share-msg.error { color: #ff4d4d; }
+    .amt-input:focus { border-color: #00e599; }
+    .amt-balance { font-size: 12px; color: #666; margin-bottom: 16px; }
+    .amt-balance span { color: #00e599; font-weight: 700; }
+    .amt-btn {
+      width: 100%; background: #00e599; color: #0a0a0a; border: none;
+      border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif;
+      font-weight: 700; font-size: 15px; cursor: pointer; transition: opacity 0.2s;
+    }
+    .amt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .amt-btn-ghost {
+      width: 100%; background: transparent; color: #555; border: none;
+      padding: 10px; font-family: 'Inter', sans-serif; font-size: 14px;
+      cursor: pointer; margin-top: 4px;
+    }
+    .amt-msg { margin-top: 10px; font-size: 13px; text-align: center; min-height: 18px; }
+    .amt-msg.ok { color: #00e599; }
+    .amt-msg.err { color: #ff4d4d; }
+    /* Link box */
+    .amt-link-box {
+      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px;
+      padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+      margin: 14px 0;
+    }
+    .amt-link-box span { flex: 1; font-size: 12px; color: #aaa; word-break: break-all; }
+    .amt-copy-btn {
+      background: #00e599; color: #0a0a0a; border: none; border-radius: 8px;
+      padding: 7px 14px; font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .amt-link-meta { font-size: 11px; color: #555; text-align: center; }
+    /* Toast */
+    #amt-toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
+      z-index: 20000; background: #111; border: 1px solid #00e599; border-radius: 12px;
+      padding: 12px 20px; font-family: 'Inter', sans-serif; font-size: 14px; color: #fff;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5); transition: transform 0.3s ease; white-space: nowrap;
+    }
+    #amt-toast.show { transform: translateX(-50%) translateY(0); }
+    #amt-toast.err-toast { border-color: #ff4d4d; }
+    /* Claim modal */
+    #amt-claim-overlay {
+      display: none; position: fixed; inset: 0; z-index: 10001;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+    }
+    #amt-claim-overlay.open { display: flex; }
+    #amt-claim-box {
+      background: #111; border: 1px solid #2a2a2a; border-radius: 24px;
+      padding: 32px 24px; width: 88%; max-width: 360px; text-align: center;
+      font-family: 'Inter', sans-serif; color: #fff;
+    }
+    #amt-claim-box .amt-claim-icon { font-size: 48px; margin-bottom: 12px; }
+    #amt-claim-box h3 { margin: 0 0 8px; font-size: 20px; font-weight: 700; }
+    #amt-claim-box p { margin: 0 0 20px; font-size: 14px; color: #888; }
   </style>
 
-  <!-- FAB button -->
-  <button id="amt-share-fab">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  <!-- FAB -->
+  <button id="amt-fab" aria-label="Share Coins">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
     Share Coins
   </button>
 
-  <!-- Modal -->
-  <div id="amt-share-overlay">
-    <div id="amt-share-modal">
-      <h2>🪙 Share Coins</h2>
-      <p>Send coins to another ANONYMIKETECH user instantly.</p>
-      <label for="amt-share-email">Recipient Email</label>
-      <input id="amt-share-email" type="email" placeholder="friend@example.com" autocomplete="off" />
-      <label for="amt-share-amount">Amount</label>
-      <input id="amt-share-amount" type="number" placeholder="e.g. 100" min="1" />
-      <div id="amt-share-balance">Your balance: <span id="amt-share-bal-val">—</span> coins</div>
-      <button id="amt-share-send">Send Coins</button>
-      <button id="amt-share-cancel">Cancel</button>
-      <div id="amt-share-msg"></div>
+  <!-- Toast -->
+  <div id="amt-toast"></div>
+
+  <!-- Claim modal (for ?pendingClaim=) -->
+  <div id="amt-claim-overlay">
+    <div id="amt-claim-box">
+      <div class="amt-claim-icon">🎁</div>
+      <h3 id="amt-claim-title">Someone sent you coins!</h3>
+      <p id="amt-claim-desc">Login to your account to claim them.</p>
+      <button class="amt-btn" onclick="document.getElementById('amt-claim-overlay').classList.remove('open')">Got it</button>
+    </div>
+  </div>
+
+  <!-- Main modal -->
+  <div id="amt-overlay">
+    <div id="amt-modal">
+      <div class="amt-drag"></div>
+      <p class="amt-title">🪙 Share Coins</p>
+      <p class="amt-sub">Balance: <span id="amt-bal" style="color:#00e599;font-weight:700">—</span> coins</p>
+
+      <div class="amt-tabs">
+        <button class="amt-tab active" data-tab="direct">Send Directly</button>
+        <button class="amt-tab" data-tab="link">Share Link</button>
+      </div>
+
+      <!-- Direct send panel -->
+      <div class="amt-panel active" id="amt-panel-direct">
+        <label style="display:block;font-size:12px;font-weight:600;color:#aaa;margin-bottom:6px">Recipient Email</label>
+        <input class="amt-input" id="amt-d-email" type="email" placeholder="friend@example.com" autocomplete="off" />
+
+        <div class="amt-currency-row">
+          <label>Amount</label>
+          <div class="amt-toggle">
+            <button class="active" id="amt-d-coins-btn" onclick="amtSetCurrency('direct','coins')">Coins</button>
+            <button id="amt-d-kes-btn" onclick="amtSetCurrency('direct','kes')">KES</button>
+          </div>
+        </div>
+        <input class="amt-input" id="amt-d-amount" type="number" placeholder="e.g. 100" min="1" />
+        <p class="amt-hint" id="amt-d-hint"></p>
+
+        <button class="amt-btn" id="amt-d-send">Send Coins</button>
+        <div class="amt-msg" id="amt-d-msg"></div>
+      </div>
+
+      <!-- Share link panel -->
+      <div class="amt-panel" id="amt-panel-link">
+        <p style="font-size:13px;color:#888;margin:0 0 16px">Coins are deducted now. The first person to open the link claims them. Link expires in 24 hours.</p>
+
+        <div class="amt-currency-row">
+          <label>Amount to lock</label>
+          <div class="amt-toggle">
+            <button class="active" id="amt-l-coins-btn" onclick="amtSetCurrency('link','coins')">Coins</button>
+            <button id="amt-l-kes-btn" onclick="amtSetCurrency('link','kes')">KES</button>
+          </div>
+        </div>
+        <input class="amt-input" id="amt-l-amount" type="number" placeholder="e.g. 500" min="1" />
+        <p class="amt-hint" id="amt-l-hint"></p>
+
+        <button class="amt-btn" id="amt-l-create">Create Link</button>
+
+        <div id="amt-link-result" style="display:none">
+          <div class="amt-link-box">
+            <span id="amt-link-url"></span>
+            <button class="amt-copy-btn" onclick="amtCopyLink()">Copy</button>
+          </div>
+          <p class="amt-link-meta" id="amt-link-meta"></p>
+          <button class="amt-btn" style="margin-top:10px" onclick="amtNativeShare()">
+            Share via WhatsApp / SMS…
+          </button>
+        </div>
+        <div class="amt-msg" id="amt-l-msg"></div>
+      </div>
+
+      <button class="amt-btn-ghost" id="amt-close">Close</button>
     </div>
   </div>
 
   <script>
-    (function () {
-      const fab = document.getElementById('amt-share-fab');
-      const overlay = document.getElementById('amt-share-overlay');
-      const emailInput = document.getElementById('amt-share-email');
-      const amountInput = document.getElementById('amt-share-amount');
-      const sendBtn = document.getElementById('amt-share-send');
-      const cancelBtn = document.getElementById('amt-share-cancel');
-      const msg = document.getElementById('amt-share-msg');
-      const balVal = document.getElementById('amt-share-bal-val');
+  (function () {
+    // ── Constants ──────────────────────────────────────────────
+    const KES_PER_COIN = 0.5; // 1 coin = KES 0.50 (Starter rate: 100 coins / KES 50)
+    const COINS_PER_KES = 2;  // 1 KES = 2 coins
 
-      let myCoins = null;
+    // ── State ──────────────────────────────────────────────────
+    let myCoins = null;
+    let dMode = 'coins'; // direct send currency mode
+    let lMode = 'coins'; // link currency mode
+    let generatedLink = null;
 
-      async function fetchMe() {
-        try {
-          const r = await fetch('/api/users/me', { credentials: 'include' });
-          if (!r.ok) return null;
-          return await r.json();
-        } catch { return null; }
-      }
+    // ── Elements ───────────────────────────────────────────────
+    const fab    = document.getElementById('amt-fab');
+    const overlay= document.getElementById('amt-overlay');
+    const balEl  = document.getElementById('amt-bal');
+    const closeBtn = document.getElementById('amt-close');
+    const toast  = document.getElementById('amt-toast');
 
-      async function init() {
-        const user = await fetchMe();
-        if (!user) { setTimeout(init, 3000); return; }
-        myCoins = user.coins;
-        balVal.textContent = myCoins.toLocaleString();
-        fab.style.display = 'flex';
-      }
+    // ── Toast ──────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, isErr) {
+      clearTimeout(toastTimer);
+      toast.textContent = msg;
+      toast.className = isErr ? 'err-toast show' : 'show';
+      toastTimer = setTimeout(() => toast.className = '', 3500);
+    }
 
-      fab.addEventListener('click', async () => {
-        msg.textContent = '';
-        msg.className = '';
-        emailInput.value = '';
-        amountInput.value = '';
-        const user = await fetchMe();
-        if (user) { myCoins = user.coins; balVal.textContent = myCoins.toLocaleString(); }
-        overlay.classList.add('open');
-        emailInput.focus();
+    // ── API ────────────────────────────────────────────────────
+    async function api(method, path, body) {
+      const r = await fetch('/api' + path, {
+        method, credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined
       });
+      return { ok: r.ok, data: await r.json() };
+    }
 
-      function closeModal() { overlay.classList.remove('open'); }
-      cancelBtn.addEventListener('click', closeModal);
-      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    async function fetchMe() {
+      try {
+        const { ok, data } = await api('GET', '/users/me');
+        return ok ? data : null;
+      } catch { return null; }
+    }
 
-      sendBtn.addEventListener('click', async () => {
-        msg.textContent = '';
-        msg.className = '';
-        const email = emailInput.value.trim();
-        const amount = parseInt(amountInput.value, 10);
-        if (!email) { msg.textContent = 'Please enter a recipient email.'; msg.className = 'error'; return; }
-        if (!amount || amount < 1) { msg.textContent = 'Please enter a valid amount.'; msg.className = 'error'; return; }
-        if (myCoins !== null && amount > myCoins) { msg.textContent = `Not enough coins. You have ${myCoins.toLocaleString()}.`; msg.className = 'error'; return; }
+    // ── Currency helpers ───────────────────────────────────────
+    window.amtSetCurrency = function(panel, mode) {
+      if (panel === 'direct') {
+        dMode = mode;
+        document.getElementById('amt-d-coins-btn').className = mode === 'coins' ? 'active' : '';
+        document.getElementById('amt-d-kes-btn').className   = mode === 'kes'   ? 'active' : '';
+        updateHint('direct');
+      } else {
+        lMode = mode;
+        document.getElementById('amt-l-coins-btn').className = mode === 'coins' ? 'active' : '';
+        document.getElementById('amt-l-kes-btn').className   = mode === 'kes'   ? 'active' : '';
+        updateHint('link');
+      }
+    };
 
-        sendBtn.disabled = true;
-        sendBtn.textContent = 'Sending…';
-        try {
-          const r = await fetch('/api/users/transfer-coins', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipientEmail: email, amount })
-          });
-          const data = await r.json();
-          if (!r.ok) {
-            msg.textContent = data.error || 'Transfer failed.';
-            msg.className = 'error';
-          } else {
-            myCoins = data.coins;
-            balVal.textContent = myCoins.toLocaleString();
-            msg.textContent = data.message || 'Coins sent successfully!';
-            msg.className = 'success';
-            emailInput.value = '';
-            amountInput.value = '';
-          }
-        } catch (e) {
-          msg.textContent = 'Network error. Please try again.';
-          msg.className = 'error';
-        } finally {
-          sendBtn.disabled = false;
-          sendBtn.textContent = 'Send Coins';
+    function updateHint(panel) {
+      const isLink  = panel === 'link';
+      const mode    = isLink ? lMode : dMode;
+      const input   = document.getElementById(isLink ? 'amt-l-amount' : 'amt-d-amount');
+      const hint    = document.getElementById(isLink ? 'amt-l-hint'   : 'amt-d-hint');
+      const val     = parseFloat(input.value);
+      if (!val || isNaN(val) || val <= 0) { hint.textContent = mode === 'kes' ? `1 KES = ${COINS_PER_KES} coins` : `1 coin = KES ${KES_PER_COIN}`; return; }
+      if (mode === 'kes') {
+        const coins = Math.floor(val * COINS_PER_KES);
+        hint.textContent = `≈ ${coins.toLocaleString()} coins`;
+      } else {
+        hint.textContent = `≈ KES ${(val * KES_PER_COIN).toLocaleString()}`;
+      }
+    }
+
+    function coinsFromInput(panel) {
+      const isLink = panel === 'link';
+      const mode   = isLink ? lMode : dMode;
+      const val    = parseFloat(document.getElementById(isLink ? 'amt-l-amount' : 'amt-d-amount').value);
+      if (!val || isNaN(val) || val < 1) return null;
+      return mode === 'kes' ? Math.floor(val * COINS_PER_KES) : Math.floor(val);
+    }
+
+    // ── Tabs ───────────────────────────────────────────────────
+    document.querySelectorAll('.amt-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.amt-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.amt-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('amt-panel-' + tab.dataset.tab).classList.add('active');
+        clearMsgs();
+      });
+    });
+
+    // ── Amount hint on input ───────────────────────────────────
+    document.getElementById('amt-d-amount').addEventListener('input', () => updateHint('direct'));
+    document.getElementById('amt-l-amount').addEventListener('input', () => updateHint('link'));
+
+    // ── Open / Close ───────────────────────────────────────────
+    fab.addEventListener('click', async () => {
+      clearMsgs();
+      document.getElementById('amt-link-result').style.display = 'none';
+      generatedLink = null;
+      const user = await fetchMe();
+      if (user) { myCoins = user.coins; balEl.textContent = myCoins.toLocaleString(); }
+      overlay.classList.add('open');
+    });
+
+    function closeModal() { overlay.classList.remove('open'); }
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+    function clearMsgs() {
+      ['amt-d-msg','amt-l-msg'].forEach(id => {
+        const el = document.getElementById(id);
+        el.textContent = ''; el.className = 'amt-msg';
+      });
+    }
+
+    function setMsg(id, text, isErr) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'amt-msg ' + (isErr ? 'err' : 'ok');
+    }
+
+    // ── Direct send ────────────────────────────────────────────
+    document.getElementById('amt-d-send').addEventListener('click', async () => {
+      const btn   = document.getElementById('amt-d-send');
+      const email = document.getElementById('amt-d-email').value.trim();
+      const coins = coinsFromInput('direct');
+      if (!email) { setMsg('amt-d-msg', 'Please enter a recipient email.', true); return; }
+      if (!coins)  { setMsg('amt-d-msg', 'Please enter a valid amount.', true); return; }
+      if (myCoins !== null && coins > myCoins) {
+        setMsg('amt-d-msg', `Not enough coins. You have ${myCoins.toLocaleString()}.`, true); return;
+      }
+      btn.disabled = true; btn.textContent = 'Sending…';
+      try {
+        const { ok, data } = await api('POST', '/users/transfer-coins', { recipientEmail: email, amount: coins });
+        if (!ok) { setMsg('amt-d-msg', data.error || 'Transfer failed.', true); }
+        else {
+          myCoins = data.coins; balEl.textContent = myCoins.toLocaleString();
+          setMsg('amt-d-msg', `✓ ${coins.toLocaleString()} coins sent to ${email}`, false);
+          document.getElementById('amt-d-email').value = '';
+          document.getElementById('amt-d-amount').value = '';
+          document.getElementById('amt-d-hint').textContent = '';
         }
-      });
+      } catch { setMsg('amt-d-msg', 'Network error. Please try again.', true); }
+      finally { btn.disabled = false; btn.textContent = 'Send Coins'; }
+    });
 
-      // Start polling until user is logged in
-      init();
+    // ── Create link ────────────────────────────────────────────
+    document.getElementById('amt-l-create').addEventListener('click', async () => {
+      const btn   = document.getElementById('amt-l-create');
+      const coins = coinsFromInput('link');
+      if (!coins) { setMsg('amt-l-msg', 'Please enter a valid amount.', true); return; }
+      if (myCoins !== null && coins > myCoins) {
+        setMsg('amt-l-msg', `Not enough coins. You have ${myCoins.toLocaleString()}.`, true); return;
+      }
+      btn.disabled = true; btn.textContent = 'Creating…';
+      document.getElementById('amt-link-result').style.display = 'none';
+      try {
+        const { ok, data } = await api('POST', '/users/coin-link', { amount: coins });
+        if (!ok) { setMsg('amt-l-msg', data.error || 'Failed to create link.', true); }
+        else {
+          myCoins = data.coins; balEl.textContent = myCoins.toLocaleString();
+          const link = `${location.origin}/claim/${data.token}`;
+          generatedLink = link;
+          document.getElementById('amt-link-url').textContent = link;
+          const exp = new Date(data.expiresAt);
+          document.getElementById('amt-link-meta').textContent =
+            `${coins.toLocaleString()} coins locked · expires ${exp.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} tomorrow`;
+          document.getElementById('amt-link-result').style.display = 'block';
+          setMsg('amt-l-msg', '', false);
+          document.getElementById('amt-l-amount').value = '';
+          document.getElementById('amt-l-hint').textContent = '';
+        }
+      } catch { setMsg('amt-l-msg', 'Network error. Please try again.', true); }
+      finally { btn.disabled = false; btn.textContent = 'Create Link'; }
+    });
+
+    // ── Copy & native share ────────────────────────────────────
+    window.amtCopyLink = function() {
+      if (!generatedLink) return;
+      navigator.clipboard.writeText(generatedLink).then(() => showToast('Link copied!', false)).catch(() => showToast('Copy failed — select the link manually.', true));
+    };
+    window.amtNativeShare = function() {
+      if (!generatedLink) return;
+      if (navigator.share) {
+        navigator.share({ title: 'Claim your free coins!', text: '🪙 Someone sent you coins on ANONYMIKETECH — claim them here:', url: generatedLink }).catch(() => {});
+      } else {
+        amtCopyLink();
+      }
+    };
+
+    // ── Init ───────────────────────────────────────────────────
+    async function init() {
+      const user = await fetchMe();
+      if (!user) { setTimeout(init, 3000); return; }
+      myCoins = user.coins;
+      balEl.textContent = myCoins.toLocaleString();
+      fab.style.display = 'flex';
+
+      // Handle claim result redirected from server
+      const params = new URLSearchParams(location.search);
+      if (params.has('claimed')) {
+        const n = parseInt(params.get('claimed'), 10);
+        showToast(`🎉 You claimed ${n.toLocaleString()} coins!`, false);
+        history.replaceState({}, '', location.pathname);
+      } else if (params.has('claimError')) {
+        showToast(params.get('claimError'), true);
+        history.replaceState({}, '', location.pathname);
+      }
+    }
+
+    // Handle ?pendingClaim= (user not logged in when they opened the link)
+    (function checkPendingClaim() {
+      const params = new URLSearchParams(location.search);
+      if (params.has('pendingClaim')) {
+        const token = params.get('pendingClaim');
+        // Store token so after login the page can auto-redirect
+        sessionStorage.setItem('pendingClaimToken', token);
+        document.getElementById('amt-claim-title').textContent = 'Coins waiting for you!';
+        document.getElementById('amt-claim-desc').textContent = 'Login or sign up to claim the coins sent to you.';
+        document.getElementById('amt-claim-overlay').classList.add('open');
+        history.replaceState({}, '', location.pathname);
+      }
+      // After login, check if there's a stored pending claim
+      const stored = sessionStorage.getItem('pendingClaimToken');
+      if (stored) {
+        // Wait for app to load, then try to claim via API
+        setTimeout(async () => {
+          const user = await fetchMe();
+          if (user) {
+            sessionStorage.removeItem('pendingClaimToken');
+            const { ok, data } = await api('POST', `/users/coin-claim/${stored}`, {});
+            if (ok) showToast(`🎉 You claimed ${data.amount?.toLocaleString()} coins!`, false);
+            else if (data.error) showToast(data.error, true);
+          }
+        }, 2000);
+      }
     })();
+
+    init();
+  })();
   </script>
   </body>
 </html>

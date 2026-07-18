@@ -51247,6 +51247,19 @@ var transactionsTable = pgTable("transactions", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => /* @__PURE__ */ new Date())
 });
 
+// coin_links table for shareable coin links
+var coinLinksTable = pgTable("coin_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: varchar("token", { length: 64 }).notNull(),
+  senderId: varchar("sender_id").notNull(),
+  coinsAmount: integer("coins_amount").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  claimedBy: varchar("claimed_by"),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
+});
+
 // ../../lib/db/src/schema/partners.ts
 var partnerApplicationsTable = pgTable("partner_applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -61785,6 +61798,46 @@ router4.post("/users/add-coins", async (req, res) => {
   const [updated] = await db.update(usersTable).set({ coins: user.coins + amount }).where(eq(usersTable.id, userId)).returning();
   return res.json(userPayload(updated));
 });
+router4.post("/users/coin-link", async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).json({ error: "Unauthorized" });
+  const { amount } = req.body;
+  const parsed = Math.floor(Number(amount));
+  if (!amount || isNaN(parsed) || parsed < 1) return res.status(400).json({ error: "amount must be a positive integer" });
+  const senderId = req.user.id;
+  const [sender] = await db.select().from(usersTable).where(eq(usersTable.id, senderId));
+  if (!sender) return res.status(404).json({ error: "User not found" });
+  if (sender.coins < parsed) return res.status(400).json({ error: `Insufficient coins. You have ${sender.coins}.` });
+  const { randomBytes } = await import("node:crypto");
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1e3);
+  await db.insert(coinLinksTable).values({ token, senderId, coinsAmount: parsed, status: "pending", expiresAt });
+  const [updatedSender] = await db.update(usersTable).set({ coins: sender.coins - parsed }).where(eq(usersTable.id, senderId)).returning();
+  await createNotification(senderId, "info", "Coin Link Created \uD83D\uDD17", `You created a ${parsed}-coin share link. Valid for 24 hours.`);
+  return res.json({ success: true, token, coins: updatedSender.coins, expiresAt: expiresAt.toISOString() });
+});
+router4.post("/users/coin-claim/:token", async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).json({ error: "Unauthorized" });
+  const { token } = req.params;
+  const userId = req.user.id;
+  const [link] = await db.select().from(coinLinksTable).where(eq(coinLinksTable.token, token));
+  if (!link) return res.status(404).json({ error: "Invalid or expired link." });
+  if (link.status !== "pending") return res.status(400).json({ error: link.status === "claimed" ? "This link has already been claimed." : "This link has expired or is no longer valid." });
+  if (new Date(link.expiresAt) < /* @__PURE__ */ new Date()) {
+    await db.update(coinLinksTable).set({ status: "expired" }).where(eq(coinLinksTable.token, token));
+    return res.status(400).json({ error: "This link has expired." });
+  }
+  if (link.senderId === userId) return res.status(400).json({ error: "You cannot claim your own link." });
+  const updated2 = await db.update(coinLinksTable).set({ status: "claimed", claimedBy: userId }).where(and(eq(coinLinksTable.token, token), eq(coinLinksTable.status, "pending"))).returning();
+  if (!updated2.length) return res.status(400).json({ error: "This link was just claimed by someone else." });
+  const [recipient] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!recipient) return res.status(404).json({ error: "User not found" });
+  const [updatedUser] = await db.update(usersTable).set({ coins: recipient.coins + link.coinsAmount }).where(eq(usersTable.id, userId)).returning();
+  const [senderUser] = await db.select({ email: usersTable.email, firstName: usersTable.firstName }).from(usersTable).where(eq(usersTable.id, link.senderId));
+  const senderName = senderUser?.firstName || senderUser?.email || "Someone";
+  await createNotification(userId, "success", "Coins Claimed \uD83C\uDF89", `You claimed ${link.coinsAmount} coins from a share link!`);
+  await createNotification(link.senderId, "info", "Link Claimed", `Your ${link.coinsAmount}-coin link was claimed by ${recipient.email}.`);
+  return res.json({ success: true, coins: updatedUser.coins, amount: link.coinsAmount, senderName });
+});
 router4.post("/users/transfer-coins", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -62332,6 +62385,33 @@ app.use(import_express11.default.json());
 app.use(import_express11.default.urlencoded({ extended: true }));
 app.use(authMiddleware);
 app.use("/api", routes_default);
+app.get("/claim/:token", async (req, res) => {
+  const { token } = req.params;
+  if (!req.isAuthenticated()) {
+    return res.redirect(`/?pendingClaim=${encodeURIComponent(token)}`);
+  }
+  try {
+    const [link] = await db.select().from(coinLinksTable).where(eq(coinLinksTable.token, token));
+    if (!link || link.status !== "pending" || new Date(link.expiresAt) < /* @__PURE__ */ new Date()) {
+      return res.redirect(`/?claimError=${encodeURIComponent("This link is invalid, expired, or already used.")}`);
+    }
+    if (link.senderId === req.user.id) {
+      return res.redirect(`/?claimError=${encodeURIComponent("You cannot claim your own link.")}`);
+    }
+    const updated2 = await db.update(coinLinksTable).set({ status: "claimed", claimedBy: req.user.id }).where(and(eq(coinLinksTable.token, token), eq(coinLinksTable.status, "pending"))).returning();
+    if (!updated2.length) return res.redirect(`/?claimError=${encodeURIComponent("This link was just claimed by someone else.")}`);
+    const [recipient] = await db.select().from(usersTable).where(eq(usersTable.id, req.user.id));
+    if (recipient) {
+      await db.update(usersTable).set({ coins: recipient.coins + link.coinsAmount }).where(eq(usersTable.id, req.user.id));
+    }
+    await createNotification(req.user.id, "success", "Coins Claimed \uD83C\uDF89", `You claimed ${link.coinsAmount} coins from a share link!`);
+    await createNotification(link.senderId, "info", "Link Claimed", `Your ${link.coinsAmount}-coin link was claimed.`);
+    return res.redirect(`/?claimed=${link.coinsAmount}`);
+  } catch (err) {
+    logger.error({ err }, "Error claiming coin link");
+    return res.redirect(`/?claimError=${encodeURIComponent("Something went wrong. Please try again.")}`);
+  }
+});
 if (process.env.SERVE_STATIC === "true") {
   const __dirname2 = path.dirname(fileURLToPath(import.meta.url));
   const publicDir = path.resolve(__dirname2, "./public");
