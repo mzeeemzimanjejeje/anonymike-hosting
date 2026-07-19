@@ -10,14 +10,16 @@
  * Maps a raw Pterodactyl panel status string to the canonical DB status value.
  *
  * The panel returns `null` / `undefined` / `""` when a container is fully
- * offline.  Everything else (including `"running"`, `"starting"`,
- * `"stopping"`) is passed through verbatim.
+ * offline, and also uses `"offline"` to mean a stopped server.  All of these
+ * are normalised to the DB canonical value `"stopped"`.  Everything else
+ * (including `"running"`, `"starting"`, `"stopping"`) is passed through
+ * verbatim.
  *
  * @param {string | null | undefined} s
  * @returns {string}
  */
 export function mapPteroStatus(s) {
-  if (!s) return "stopped";
+  if (!s || s === "offline") return "stopped";
   return s;
 }
 

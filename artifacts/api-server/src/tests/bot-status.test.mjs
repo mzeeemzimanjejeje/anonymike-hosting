@@ -77,8 +77,8 @@ describe("mapPteroStatus", () => {
     assert.equal(mapPteroStatus("stopping"), "stopping");
   });
 
-  it("passes through 'offline' (panel-specific value)", () => {
-    assert.equal(mapPteroStatus("offline"), "offline");
+  it("maps 'offline' to 'stopped' (panel uses 'offline' for a stopped server)", () => {
+    assert.equal(mapPteroStatus("offline"), "stopped");
   });
 
   it("passes through any unknown panel value verbatim", () => {
@@ -383,10 +383,12 @@ describe("reconcileBotStatuses", () => {
 
     await assert.doesNotReject(reconcileBotStatuses());
 
-    // "offline", "running", "stopping" all differ from DB "starting" → 3 updates
-    // "starting" matches DB "starting" → no update
+    // "offline" → mapped to "stopped", differs from DB "starting" → update
+    // "running" → differs from DB "starting" → update
+    // "starting" → matches DB "starting" → no update
+    // "stopping" → differs from DB "starting" → update
     assert.equal(updateLog.length, 3, "Bots whose panel state differs from DB should all be updated");
     const updatedStatuses = updateLog.map((u) => u.data.status).sort();
-    assert.deepEqual(updatedStatuses, ["offline", "running", "stopping"].sort());
+    assert.deepEqual(updatedStatuses, ["stopped", "running", "stopping"].sort());
   });
 });
