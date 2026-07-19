@@ -1,6 +1,7 @@
 import { createRequire as __bannerCrReq } from 'node:module';
 import __bannerPath from 'node:path';
 import __bannerUrl from 'node:url';
+import { mapPteroStatus, makeLiveStatus, makeReconcile } from './src/lib/bot-status.mjs';
 
 globalThis.require = __bannerCrReq(import.meta.url);
 globalThis.__filename = __bannerUrl.fileURLToPath(import.meta.url);
@@ -61557,10 +61558,7 @@ async function uploadBotFiles(serverId, repoUrl, sessionEnvKey, sessionValue) {
 }
 var router3 = (0, import_express3.Router)();
 var THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1e3;
-function mapPteroStatus(s) {
-  if (!s) return "stopped";
-  return s;
-}
+// mapPteroStatus is imported from ./src/lib/bot-status.mjs
 var PTERO_BASE = process.env.PTERODACTYL_URL?.replace(/\/$/, "") ?? "";
 function normalizeBotResponse(bot, liveStatus) {
   const pteroId = bot.pterodactylServerId ?? null;
@@ -61576,23 +61574,8 @@ function normalizeBotResponse(bot, liveStatus) {
     createdAt: bot.createdAt.toISOString()
   };
 }
-async function getLiveStatus(bot) {
-  if (!bot.pterodactylServerId || !pterodactyl.hasClientAccess()) {
-    return bot.status;
-  }
-  try {
-    const s = await pterodactyl.getServerStatus(bot.pterodactylServerId);
-    const liveStatus = mapPteroStatus(s);
-    if (liveStatus !== bot.status) {
-      await db.update(botsTable).set({ status: liveStatus }).where(eq(botsTable.id, bot.id));
-      logger.info({ botId: bot.id, from: bot.status, to: liveStatus }, "Bot status reconciled from Pterodactyl panel");
-    }
-    return liveStatus;
-  } catch (err) {
-    logger.warn({ err, botId: bot.id }, "Failed to get live Pterodactyl status");
-    return bot.status;
-  }
-}
+// getLiveStatus is built from the shared factory in ./src/lib/bot-status.mjs
+var getLiveStatus = makeLiveStatus({ pterodactyl, db, botsTable, eq, logger });
 router3.post("/bots", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Unauthorized" });
@@ -62780,32 +62763,8 @@ function daysAgo(n) {
 function hoursAgo(n) {
   return new Date(Date.now() - n * 60 * 60 * 1e3);
 }
-async function reconcileBotStatuses() {
-  if (!pterodactyl.hasClientAccess()) return;
-  const runningBots = await db.select().from(botsTable).where(
-    and(
-      isNotNull(botsTable.pterodactylServerId),
-      inArray(botsTable.status, ["running", "starting", "stopping"])
-    )
-  );
-  if (runningBots.length === 0) return;
-  console.log(`[CLEANUP] Reconciling status for ${runningBots.length} active bot(s) against Pterodactyl panel\u2026`);
-  const results = await Promise.allSettled(
-    runningBots.map(async (bot) => {
-      try {
-        const liveStatus = mapPteroStatus(await pterodactyl.getServerStatus(bot.pterodactylServerId));
-        if (liveStatus !== bot.status) {
-          await db.update(botsTable).set({ status: liveStatus }).where(eq(botsTable.id, bot.id));
-          console.log(`[CLEANUP] Bot ${bot.id} status: ${bot.status} \u2192 ${liveStatus}`);
-        }
-      } catch (err) {
-        console.warn(`[CLEANUP] Could not reconcile bot ${bot.id}:`, err?.message ?? err);
-      }
-    })
-  );
-  const reconciled = results.filter((r) => r.status === "fulfilled").length;
-  console.log(`[CLEANUP] Status reconciliation complete (${reconciled}/${runningBots.length} checked).`);
-}
+// reconcileBotStatuses is built from the shared factory in ./src/lib/bot-status.mjs
+var reconcileBotStatuses = makeReconcile({ pterodactyl, db, botsTable, and, isNotNull, inArray, eq });
 async function runCleanup() {
   console.log("[CLEANUP] Running cleanup job\u2026");
   await reconcileBotStatuses().catch((err) => console.error("[CLEANUP] reconcileBotStatuses failed:", err));
