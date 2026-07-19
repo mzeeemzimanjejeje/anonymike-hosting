@@ -254,6 +254,19 @@
       if (p == null) return '—';
       return p.toFixed(1) + '%';
     }
+    function fmtUptime(ms) {
+      if (ms == null) return null;
+      const totalMin = Math.floor(ms / 60000);
+      if (totalMin < 1) return '< 1m';
+      const d = Math.floor(totalMin / 1440);
+      const h = Math.floor((totalMin % 1440) / 60);
+      const m = totalMin % 60;
+      let s = '';
+      if (d > 0) s += d + 'd ';
+      if (h > 0) s += h + 'h ';
+      if (m > 0 || (d === 0 && h === 0)) s += m + 'm';
+      return s.trim();
+    }
 
     // Fetch helpers (credentials: include so session cookie is sent)
     async function apiFetch(path2) {
@@ -320,6 +333,8 @@
         row.appendChild(makePill('CPU', fmtCpu(state.cpuAbsolute)));
         row.appendChild(makePill('RAM', fmtBytes(state.memoryBytes)));
         row.appendChild(makePill('DISK', fmtBytes(state.diskBytes)));
+        const uptime = fmtUptime(state.uptimeMilliseconds);
+        if (uptime != null) row.appendChild(makePill('UP', uptime));
       }
 
       if (isNew) {
