@@ -37,13 +37,13 @@
   <style>
     #amt-fab {
       position: fixed; bottom: 84px; right: 18px; z-index: 9999;
-      background: #00e599; color: #0a0a0a; border: none; border-radius: 50px;
+      background: hsl(var(--primary)); color: #0a0a0a; border: none; border-radius: 50px;
       padding: 12px 20px; font-family: 'Inter', sans-serif; font-weight: 700;
       font-size: 14px; cursor: pointer; display: none; align-items: center;
-      gap: 8px; box-shadow: 0 4px 24px rgba(0,229,153,0.35);
+      gap: 8px; box-shadow: 0 4px 24px rgba(var(--primary-rgb),0.35);
       transition: transform 0.15s, box-shadow 0.15s;
     }
-    #amt-fab:hover { transform: scale(1.05); box-shadow: 0 6px 32px rgba(0,229,153,0.5); }
+    #amt-fab:hover { transform: scale(1.05); box-shadow: 0 6px 32px rgba(var(--primary-rgb),0.5); }
     #amt-overlay {
       display: none; position: fixed; inset: 0; z-index: 10000;
       background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
@@ -64,7 +64,7 @@
       background: transparent; color: #888; font-family: 'Inter', sans-serif;
       font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
-    .amt-tab.active { background: #00e59920; border-color: #00e599; color: #00e599; }
+    .amt-tab.active { background: color-mix(in srgb,hsl(var(--primary)) 12%,transparent); border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
     .amt-panel { display: none; }
     .amt-panel.active { display: block; }
     /* Currency toggle */
@@ -76,7 +76,7 @@
       font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
       cursor: pointer; transition: all 0.15s;
     }
-    .amt-toggle button.active { background: #00e599; color: #0a0a0a; }
+    .amt-toggle button.active { background: hsl(var(--primary)); color: #0a0a0a; }
     .amt-hint { font-size: 11px; color: #555; margin: -10px 0 12px; }
     .amt-input {
       width: 100%; box-sizing: border-box; background: #1a1a1a;
@@ -84,11 +84,11 @@
       font-family: 'Inter', sans-serif; font-size: 15px; padding: 13px 14px;
       margin-bottom: 14px; outline: none; transition: border-color 0.2s;
     }
-    .amt-input:focus { border-color: #00e599; }
+    .amt-input:focus { border-color: hsl(var(--primary)); }
     .amt-balance { font-size: 12px; color: #666; margin-bottom: 16px; }
-    .amt-balance span { color: #00e599; font-weight: 700; }
+    .amt-balance span { color: hsl(var(--primary)); font-weight: 700; }
     .amt-btn {
-      width: 100%; background: #00e599; color: #0a0a0a; border: none;
+      width: 100%; background: hsl(var(--primary)); color: #0a0a0a; border: none;
       border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif;
       font-weight: 700; font-size: 15px; cursor: pointer; transition: opacity 0.2s;
     }
@@ -99,7 +99,7 @@
       cursor: pointer; margin-top: 4px;
     }
     .amt-msg { margin-top: 10px; font-size: 13px; text-align: center; min-height: 18px; }
-    .amt-msg.ok { color: #00e599; }
+    .amt-msg.ok { color: hsl(var(--primary)); }
     .amt-msg.err { color: #ff4d4d; }
     /* Link box */
     .amt-link-box {
@@ -109,7 +109,7 @@
     }
     .amt-link-box span { flex: 1; font-size: 12px; color: #aaa; word-break: break-all; }
     .amt-copy-btn {
-      background: #00e599; color: #0a0a0a; border: none; border-radius: 8px;
+      background: hsl(var(--primary)); color: #0a0a0a; border: none; border-radius: 8px;
       padding: 7px 14px; font-family: 'Inter', sans-serif; font-weight: 700;
       font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
     }
@@ -117,7 +117,7 @@
     /* Toast */
     #amt-toast {
       position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
-      z-index: 20000; background: #111; border: 1px solid #00e599; border-radius: 12px;
+      z-index: 20000; background: #111; border: 1px solid hsl(var(--primary)); border-radius: 12px;
       padding: 12px 20px; font-family: 'Inter', sans-serif; font-size: 14px; color: #fff;
       box-shadow: 0 8px 32px rgba(0,0,0,0.5); transition: transform 0.3s ease; white-space: nowrap;
     }
@@ -164,7 +164,7 @@
     <div id="amt-modal">
       <div class="amt-drag"></div>
       <p class="amt-title">🪙 Share Coins</p>
-      <p class="amt-sub">Balance: <span id="amt-bal" style="color:#00e599;font-weight:700">—</span> coins</p>
+      <p class="amt-sub">Balance: <span id="amt-bal" style="color:hsl(var(--primary));font-weight:700">—</span> coins</p>
 
       <div class="amt-tabs">
         <button class="amt-tab active" data-tab="direct">Send Directly</button>
@@ -235,10 +235,10 @@
       font-size: 11px; color: #888; transition: color 0.3s, border-color 0.3s;
       white-space: nowrap;
     }
-    .amt-res-pill.has-data { color: #ccc; border-color: rgba(0,229,153,0.15); }
+    .amt-res-pill.has-data { color: #ccc; border-color: rgba(var(--primary-rgb),0.15); }
     .amt-res-pill svg { flex-shrink: 0; }
     .amt-res-label { color: #555; font-size: 10px; margin-right: 1px; }
-    .amt-res-spin { display: inline-block; width: 8px; height: 8px; border: 1.5px solid #333; border-top-color: #00e599; border-radius: 50%; animation: amt-spin 0.7s linear infinite; }
+    .amt-res-spin { display: inline-block; width: 8px; height: 8px; border: 1.5px solid #333; border-top-color: hsl(var(--primary)); border-radius: 50%; animation: amt-spin 0.7s linear infinite; }
     @keyframes amt-spin { to { transform: rotate(360deg); } }
   </style>
   <script>
@@ -692,24 +692,27 @@
   <script>
   (function() {
     const COLORS = [
-      { label: 'Green',   hsl: '160 100% 45%', hex: '#00e599' },
-      { label: 'Blue',    hsl: '217 91% 60%',  hex: '#3b82f6' },
-      { label: 'Purple',  hsl: '270 91% 65%',  hex: '#a855f7' },
-      { label: 'Pink',    hsl: '330 86% 62%',  hex: '#f43f8e' },
-      { label: 'Orange',  hsl: '25 95% 55%',   hex: '#f97316' },
-      { label: 'Red',     hsl: '0 84% 60%',    hex: '#ef4444' },
-      { label: 'Cyan',    hsl: '192 91% 50%',  hex: '#06b6d4' },
-      { label: 'Yellow',  hsl: '45 93% 55%',   hex: '#eab308' },
-      { label: 'Teal',    hsl: '174 72% 45%',  hex: '#14b8a6' },
-      { label: 'Indigo',  hsl: '239 84% 67%',  hex: '#6366f1' },
+      { label: 'Green',   hsl: '160 100% 45%', hex: '#00e599', rgb: '0,229,153'   },
+      { label: 'Blue',    hsl: '217 91% 60%',  hex: '#3b82f6', rgb: '59,130,246'  },
+      { label: 'Purple',  hsl: '270 91% 65%',  hex: '#a855f7', rgb: '168,85,247'  },
+      { label: 'Pink',    hsl: '330 86% 62%',  hex: '#f43f8e', rgb: '244,63,142'  },
+      { label: 'Orange',  hsl: '25 95% 55%',   hex: '#f97316', rgb: '249,115,22'  },
+      { label: 'Red',     hsl: '0 84% 60%',    hex: '#ef4444', rgb: '239,68,68'   },
+      { label: 'Cyan',    hsl: '192 91% 50%',  hex: '#06b6d4', rgb: '6,182,212'   },
+      { label: 'Yellow',  hsl: '45 93% 55%',   hex: '#eab308', rgb: '234,179,8'   },
+      { label: 'Teal',    hsl: '174 72% 45%',  hex: '#14b8a6', rgb: '20,184,166'  },
+      { label: 'Indigo',  hsl: '239 84% 67%',  hex: '#6366f1', rgb: '99,102,241'  },
     ];
     const STORAGE_KEY = 'amt-theme-color';
 
     function applyColor(hsl) {
+      const color = COLORS.find(c => c.hsl === hsl) || COLORS[0];
+      const hex = color.hex;
+      const rgb = color.rgb;
       document.documentElement.style.setProperty('--primary', hsl);
       document.documentElement.style.setProperty('--ring', hsl);
-      // update meta theme-color to match
-      const hex = COLORS.find(c => c.hsl === hsl)?.hex || '#00e599';
+      document.documentElement.style.setProperty('--primary-hex', hex);
+      document.documentElement.style.setProperty('--primary-rgb', rgb);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute('content', hex);
     }
