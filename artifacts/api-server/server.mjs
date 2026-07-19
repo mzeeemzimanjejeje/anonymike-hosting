@@ -61994,6 +61994,56 @@ router3.get("/bots/:botId/console-ws", async (req, res) => {
     res.status(502).json({ error: "Could not get console credentials. Is the bot server online?" });
   }
 });
+// SSE endpoint — proxies Pterodactyl Wings WebSocket to browser via Server-Sent Events
+router3.get("/bots/:botId/console-stream", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const { botId } = req.params;
+  const userId = req.user.id;
+  const [bot] = await db.select().from(botsTable).where(and(eq(botsTable.id, botId), eq(botsTable.userId, userId)));
+  if (!bot) { res.status(404).json({ error: "Bot not found" }); return; }
+  if (!bot.pterodactylServerId || !pterodactyl.hasClientAccess()) {
+    res.status(503).json({ error: "No panel integration" }); return;
+  }
+  let wsConn = null;
+  try {
+    const data = await clientRequest("GET", `/servers/${bot.pterodactylServerId}/websocket`);
+    const { token, socket } = data?.data ?? {};
+    if (!token || !socket) throw new Error("No WebSocket credentials");
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+    const send = (obj) => { try { res.write(`data: ${JSON.stringify(obj)}\n\n`); } catch {} };
+    const { createRequire } = await import("module");
+    const WS = createRequire(import.meta.url)("ws");
+    wsConn = new WS(socket, { headers: { Origin: new URL(socket).origin } });
+    wsConn.on("open", () => { wsConn.send(JSON.stringify({ event: "auth", args: [token] })); });
+    wsConn.on("message", (raw) => {
+      try {
+        const m = JSON.parse(raw.toString());
+        if (m.event === "auth success") { wsConn.send(JSON.stringify({ event: "send logs", args: [null] })); }
+        else if (m.event === "console output" && m.args?.[0]) {
+          const line = m.args[0].replace(/\x1b\[[0-9;]*[mGKHFJsu]/g, "").trimEnd();
+          if (line) send({ line });
+        } else if (m.event === "token expiring") {
+          // refresh token
+          clientRequest("GET", `/servers/${bot.pterodactylServerId}/websocket`)
+            .then(d => { if (d?.data?.token) wsConn.send(JSON.stringify({ event: "auth", args: [d.data.token] })); })
+            .catch(() => {});
+        }
+      } catch {}
+    });
+    wsConn.on("error", () => send({ error: "WebSocket error" }));
+    wsConn.on("close", () => { send({ closed: true }); res.end(); });
+    req.on("close", () => { if (wsConn) wsConn.close(); });
+  } catch (err) {
+    logger.warn({ err, botId }, "console-stream failed");
+    if (!res.headersSent) res.status(502).json({ error: "Could not connect to console" });
+    else res.end();
+    if (wsConn) wsConn.close();
+  }
+});
 router3.get("/bots/:botId/resources", async (req, res) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Unauthorized" });
