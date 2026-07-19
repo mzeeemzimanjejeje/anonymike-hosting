@@ -61999,7 +61999,7 @@ router3.get("/bots/:botId/console-ws", async (req, res) => {
     res.status(502).json({ error: "Could not get console credentials. Is the bot server online?" });
   }
 });
-// SSE endpoint — proxies Pterodactyl Wings WebSocket to browser via Server-Sent Events
+// SSE endpoint — streams activity log by polling Pterodactyl every 4 s
 router3.get("/bots/:botId/console-stream", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
   const { botId } = req.params;
@@ -62009,45 +62009,36 @@ router3.get("/bots/:botId/console-stream", async (req, res) => {
   if (!bot.pterodactylServerId || !pterodactyl.hasClientAccess()) {
     res.status(503).json({ error: "No panel integration" }); return;
   }
-  let wsConn = null;
-  try {
-    const data = await clientRequest("GET", `/servers/${bot.pterodactylServerId}/websocket`);
-    const { token, socket } = data?.data ?? {};
-    if (!token || !socket) throw new Error("No WebSocket credentials");
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("X-Accel-Buffering", "no");
-    res.flushHeaders();
-    const send = (obj) => { try { res.write(`data: ${JSON.stringify(obj)}\n\n`); } catch {} };
-    const { createRequire } = await import("module");
-    const WS = createRequire(import.meta.url)("ws");
-    wsConn = new WS(socket, { headers: { Origin: new URL(socket).origin } });
-    wsConn.on("open", () => { wsConn.send(JSON.stringify({ event: "auth", args: [token] })); });
-    wsConn.on("message", (raw) => {
-      try {
-        const m = JSON.parse(raw.toString());
-        if (m.event === "auth success") { wsConn.send(JSON.stringify({ event: "send logs", args: [null] })); }
-        else if (m.event === "console output" && m.args?.[0]) {
-          const line = m.args[0].replace(/\x1b\[[0-9;]*[mGKHFJsu]/g, "").trimEnd();
-          if (line) send({ line });
-        } else if (m.event === "token expiring") {
-          // refresh token
-          clientRequest("GET", `/servers/${bot.pterodactylServerId}/websocket`)
-            .then(d => { if (d?.data?.token) wsConn.send(JSON.stringify({ event: "auth", args: [d.data.token] })); })
-            .catch(() => {});
-        }
-      } catch {}
-    });
-    wsConn.on("error", () => send({ error: "WebSocket error" }));
-    wsConn.on("close", () => { send({ closed: true }); res.end(); });
-    req.on("close", () => { if (wsConn) wsConn.close(); });
-  } catch (err) {
-    logger.warn({ err, botId }, "console-stream failed");
-    if (!res.headersSent) res.status(502).json({ error: "Could not connect to console" });
-    else res.end();
-    if (wsConn) wsConn.close();
-  }
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders();
+  const send = (obj) => { try { res.write(`data: ${JSON.stringify(obj)}\n\n`); } catch {} };
+  let seenIds = new Set();
+  let alive = true;
+  const poll = async () => {
+    try {
+      const activity = await pterodactyl.getServerActivity(bot.pterodactylServerId);
+      const fresh = (activity ?? []).filter(e => !seenIds.has(e.id ?? e.timestamp));
+      fresh.reverse().forEach(e => {
+        const id = e.id ?? e.timestamp;
+        seenIds.add(id);
+        const ts = new Date(e.timestamp).toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        const action = e.event?.replace(/^server:/, "") ?? "event";
+        const desc = e.description ? ` — ${e.description}` : "";
+        send({ line: `[${ts}] ${action}${desc}` });
+      });
+      if (fresh.length === 0 && seenIds.size === 0) {
+        send({ line: "[console] Waiting for activity…" });
+      }
+    } catch { send({ line: "[console] Panel unreachable — retrying…" }); }
+  };
+  await poll();
+  const interval = setInterval(async () => { if (alive) await poll(); }, 4000);
+  // keepalive ping every 20 s so the connection doesn't time out
+  const ping = setInterval(() => { try { res.write(": ping\n\n"); } catch {} }, 20000);
+  req.on("close", () => { alive = false; clearInterval(interval); clearInterval(ping); res.end(); });
 });
 router3.get("/bots/:botId/resources", async (req, res) => {
   if (!req.isAuthenticated()) {
