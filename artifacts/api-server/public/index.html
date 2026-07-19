@@ -642,5 +642,130 @@
     init();
   })();
   </script>
+
+  <!-- Colour Theme Picker -->
+  <style>
+    #amt-color-btn {
+      position: fixed; bottom: 148px; right: 18px; z-index: 9998;
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.12);
+      background: rgba(20,20,20,0.9); backdrop-filter: blur(8px);
+      cursor: pointer; display: none; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    #amt-color-btn:hover { transform: scale(1.1); border-color: rgba(255,255,255,0.25); }
+    #amt-color-btn svg { width: 18px; height: 18px; }
+    #amt-color-panel {
+      display: none; position: fixed; bottom: 200px; right: 18px; z-index: 9997;
+      background: rgba(15,15,15,0.97); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+      padding: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      flex-direction: column; gap: 10px; width: 200px;
+    }
+    #amt-color-panel .cp-title {
+      font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+      color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+    #amt-color-swatches {
+      display: grid; grid-template-columns: repeat(5,1fr); gap: 8px;
+    }
+    .amt-swatch {
+      width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+      transition: transform 0.12s, border-color 0.12s;
+    }
+    .amt-swatch:hover { transform: scale(1.15); }
+    .amt-swatch.active { border-color: rgba(255,255,255,0.8); }
+  </style>
+  <button id="amt-color-btn" title="Change theme colour" aria-label="Theme colour picker">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.7)">
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+    </svg>
+  </button>
+  <div id="amt-color-panel">
+    <div class="cp-title">Theme Colour</div>
+    <div id="amt-color-swatches"></div>
+  </div>
+  <script>
+  (function() {
+    const COLORS = [
+      { label: 'Green',   hsl: '160 100% 45%', hex: '#00e599' },
+      { label: 'Blue',    hsl: '217 91% 60%',  hex: '#3b82f6' },
+      { label: 'Purple',  hsl: '270 91% 65%',  hex: '#a855f7' },
+      { label: 'Pink',    hsl: '330 86% 62%',  hex: '#f43f8e' },
+      { label: 'Orange',  hsl: '25 95% 55%',   hex: '#f97316' },
+      { label: 'Red',     hsl: '0 84% 60%',    hex: '#ef4444' },
+      { label: 'Cyan',    hsl: '192 91% 50%',  hex: '#06b6d4' },
+      { label: 'Yellow',  hsl: '45 93% 55%',   hex: '#eab308' },
+      { label: 'Teal',    hsl: '174 72% 45%',  hex: '#14b8a6' },
+      { label: 'Indigo',  hsl: '239 84% 67%',  hex: '#6366f1' },
+    ];
+    const STORAGE_KEY = 'amt-theme-color';
+
+    function applyColor(hsl) {
+      document.documentElement.style.setProperty('--primary', hsl);
+      document.documentElement.style.setProperty('--ring', hsl);
+      // update meta theme-color to match
+      const hex = COLORS.find(c => c.hsl === hsl)?.hex || '#00e599';
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', hex);
+    }
+
+    function setActive(hsl) {
+      document.querySelectorAll('.amt-swatch').forEach(s => {
+        s.classList.toggle('active', s.dataset.hsl === hsl);
+      });
+    }
+
+    const btn = document.getElementById('amt-color-btn');
+    const panel = document.getElementById('amt-color-panel');
+    const grid = document.getElementById('amt-color-swatches');
+
+    COLORS.forEach(({ label, hsl, hex }) => {
+      const s = document.createElement('button');
+      s.className = 'amt-swatch';
+      s.title = label;
+      s.dataset.hsl = hsl;
+      s.style.background = hex;
+      s.addEventListener('click', () => {
+        applyColor(hsl);
+        setActive(hsl);
+        localStorage.setItem(STORAGE_KEY, hsl);
+      });
+      grid.appendChild(s);
+    });
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = panel.style.display === 'flex';
+      panel.style.display = open ? 'none' : 'flex';
+    });
+    document.addEventListener('click', () => { panel.style.display = 'none'; });
+    panel.addEventListener('click', e => e.stopPropagation());
+
+    // Restore saved colour or default green
+    const saved = localStorage.getItem(STORAGE_KEY) || '160 100% 45%';
+    applyColor(saved);
+
+    // Show button only when user is logged in (same logic as FAB)
+    function checkVisibility() {
+      const show = document.cookie.includes('connect.sid') ||
+                   !!document.querySelector('[data-user],[data-authenticated]') ||
+                   window.location.pathname.startsWith('/dashboard') ||
+                   window.location.pathname.startsWith('/bots') ||
+                   window.location.pathname.startsWith('/profile') ||
+                   window.location.pathname.startsWith('/partners');
+      btn.style.display = show ? 'flex' : 'none';
+    }
+    checkVisibility();
+    const _pushState = history.pushState.bind(history);
+    history.pushState = function(...a) { _pushState(...a); setTimeout(checkVisibility, 100); };
+    window.addEventListener('popstate', () => setTimeout(checkVisibility, 100));
+    setActive(saved);
+  })();
+  </script>
   </body>
 </html>
