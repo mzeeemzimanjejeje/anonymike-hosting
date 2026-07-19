@@ -61627,6 +61627,8 @@ router3.post("/bots", async (req, res) => {
       logger.error({ err, userId }, "Auto-provision Pterodactyl server failed — continuing without panel server");
     }
   }
+  // Track whether the panel server was auto-provisioned so we can clean it up on failure
+  const wasAutoProvisioned = !pterodactylServerId && !!pteroServerId;
   const [bot] = await db.insert(botsTable).values({
     id: sql`gen_random_uuid()`,
     userId,
@@ -61639,6 +61641,7 @@ router3.post("/bots", async (req, res) => {
     expiresAt
   }).returning();
   if (pteroServerId && pterodactyl.hasClientAccess()) {
+    let sessionInjected = false;
     try {
       const [botCfg] = await db.select().from(botSettingsTable).where(eq(botSettingsTable.botTypeId, botType ?? "")).limit(1);
       const envKey = botCfg?.sessionEnvKey ?? "SESSION_ID";
@@ -61659,12 +61662,31 @@ router3.post("/bots", async (req, res) => {
       } else {
         await pterodactyl.setEnvVar(effectivePteroId, envKey, sessionId, configFilePath, configFileFormat);
       }
+      // Session injection succeeded — mark before attempting start so the catch can tell stages apart
+      sessionInjected = true;
       await pterodactyl.sendPowerSignal(effectivePteroId, "start");
       await db.update(botsTable).set({ status: "running" }).where(eq(botsTable.id, bot.id));
       logger.info({ botId: bot.id }, "Pterodactyl server started after session injection");
     } catch (err) {
-      logger.error({ err, botId: bot.id }, "Pterodactyl deploy failed (env write or start)");
-      await db.update(botsTable).set({ status: "stopped" }).where(eq(botsTable.id, bot.id));
+      if (!sessionInjected && wasAutoProvisioned) {
+        // Session injection failed on an auto-provisioned server — delete the leaked panel server
+        logger.error({ err, botId: bot.id, pteroServerId }, "Session injection failed; cleaning up auto-provisioned panel server");
+        try {
+          const internalId = await pterodactyl.getServerInternalId(pteroServerId);
+          if (internalId) {
+            await pterodactyl.deleteServerFromPanel(internalId);
+            logger.info({ botId: bot.id, pteroServerId }, "Auto-provisioned panel server deleted after session injection failure");
+          }
+        } catch (cleanupErr) {
+          logger.error({ cleanupErr, pteroServerId }, "Failed to delete panel server during creation-failure cleanup");
+        }
+        // Null out the server reference so the bot record doesn't point at a deleted server
+        await db.update(botsTable).set({ status: "stopped", pterodactylServerId: null }).where(eq(botsTable.id, bot.id));
+      } else {
+        // Start signal failed (session was already written) — server exists but didn't start; leave it as stopped
+        logger.error({ err, botId: bot.id }, "Pterodactyl start signal failed after session injection");
+        await db.update(botsTable).set({ status: "stopped" }).where(eq(botsTable.id, bot.id));
+      }
     }
   } else {
     await db.update(botsTable).set({ status: "running" }).where(eq(botsTable.id, bot.id));
