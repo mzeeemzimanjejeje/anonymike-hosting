@@ -647,36 +647,48 @@
   <style>
     #amt-color-btn {
       position: fixed; bottom: 148px; right: 18px; z-index: 9998;
-      width: 42px; height: 42px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.12);
-      background: rgba(20,20,20,0.9); backdrop-filter: blur(8px);
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 2px solid hsl(var(--primary));
+      background: rgba(20,20,20,0.95); backdrop-filter: blur(12px);
       cursor: pointer; display: none; align-items: center; justify-content: center;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      transition: transform 0.15s, border-color 0.15s;
+      box-shadow: 0 6px 24px rgba(var(--primary-rgb),0.3);
+      transition: all 0.2s ease;
     }
-    #amt-color-btn:hover { transform: scale(1.1); border-color: rgba(255,255,255,0.25); }
-    #amt-color-btn svg { width: 18px; height: 18px; }
+    #amt-color-btn:hover { 
+      transform: scale(1.15); 
+      border-color: rgba(255,255,255,0.6);
+      box-shadow: 0 8px 32px rgba(var(--primary-rgb),0.5);
+    }
+    #amt-color-btn svg { width: 20px; height: 20px; color: hsl(var(--primary)); }
     #amt-color-panel {
-      display: none; position: fixed; bottom: 200px; right: 18px; z-index: 9997;
-      background: rgba(15,15,15,0.97); backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
-      padding: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-      flex-direction: column; gap: 10px; width: 200px;
+      display: none; position: fixed; bottom: 210px; right: 18px; z-index: 9997;
+      background: rgba(15,15,15,0.98); backdrop-filter: blur(16px);
+      border: 1px solid rgba(var(--primary-rgb),0.2); border-radius: 20px;
+      padding: 16px; box-shadow: 0 12px 48px rgba(0,0,0,0.8);
+      flex-direction: column; gap: 12px; width: 220px;
     }
     #amt-color-panel .cp-title {
-      font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
-      color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 2px;
+      font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+      color: hsl(var(--primary)); text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 4px;
     }
     #amt-color-swatches {
-      display: grid; grid-template-columns: repeat(5,1fr); gap: 8px;
+      display: grid; grid-template-columns: repeat(5,1fr); gap: 10px;
     }
     .amt-swatch {
-      width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
-      transition: transform 0.12s, border-color 0.12s;
+      width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent;
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .amt-swatch:hover { transform: scale(1.15); }
-    .amt-swatch.active { border-color: rgba(255,255,255,0.8); }
+    .amt-swatch:hover { 
+      transform: scale(1.2); 
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .amt-swatch.active { 
+      border-color: rgba(255,255,255,0.9);
+      box-shadow: 0 0 12px rgba(255,255,255,0.4);
+      transform: scale(1.05);
+    }
   </style>
   <button id="amt-color-btn" title="Change theme colour" aria-label="Theme colour picker">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.7)">
@@ -768,6 +780,120 @@
     history.pushState = function(...a) { _pushState(...a); setTimeout(checkVisibility, 100); };
     window.addEventListener('popstate', () => setTimeout(checkVisibility, 100));
     setActive(saved);
+    
+    // Log color changes to console for debugging
+    console.log('[THEME] Color picker initialized. Available colors:', COLORS.map(c => c.label).join(', '));
+    console.log('[THEME] Current theme:', saved);
+  })();
+  
+  // Real-time Console Log Viewer
+  (function() {
+    const consoleLogKey = 'amt-console-logs';
+    const maxLogs = 500;
+    
+    // Intercept console methods to capture real logs
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+    const originalInfo = console.info;
+    
+    function captureLog(level, args) {
+      try {
+        const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const message = Array.from(args).map(arg => {
+          if (typeof arg === 'object') return JSON.stringify(arg);
+          return String(arg);
+        }).join(' ');
+        
+        const logEntry = { timestamp, level, message };
+        const logs = JSON.parse(sessionStorage.getItem(consoleLogKey) || '[]');
+        logs.push(logEntry);
+        if (logs.length > maxLogs) logs.shift();
+        sessionStorage.setItem(consoleLogKey, JSON.stringify(logs));
+        
+        // Dispatch custom event for real-time UI updates
+        window.dispatchEvent(new CustomEvent('console-log', { detail: logEntry }));
+      } catch (e) {
+        // Silently fail if storage is full
+      }
+    }
+    
+    console.log = function(...args) { originalLog(...args); captureLog('log', args); };
+    console.warn = function(...args) { originalWarn(...args); captureLog('warn', args); };
+    console.error = function(...args) { originalError(...args); captureLog('error', args); };
+    console.info = function(...args) { originalInfo(...args); captureLog('info', args); };
+    
+    // Expose API for accessing logs
+    window.getConsoleLogs = function() {
+      return JSON.parse(sessionStorage.getItem(consoleLogKey) || '[]');
+    };
+    
+    window.clearConsoleLogs = function() {
+      sessionStorage.removeItem(consoleLogKey);
+    };
+    
+    console.log('[CONSOLE] Real-time console capture initialized');
+  })();
+  </script>
+  <!-- Console Logs Storage & Real-time Streaming -->
+  <script>
+  (function() {
+    // Stream bot console logs from Pterodactyl via SSE
+    window.streamBotConsole = function(botId, onLog) {
+      if (!botId) {
+        console.error('[STREAM] Bot ID required');
+        return null;
+      }
+      
+      const eventSource = new EventSource(`/api/bots/${botId}/console-stream`, { withCredentials: true });
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          const logEntry = {
+            timestamp,
+            level: 'stream',
+            message: data.line || String(data),
+            source: 'pterodactyl'
+          };
+          
+          if (onLog) onLog(logEntry);
+          console.log(`[BOT:${botId}] ${data.line}`);
+        } catch (e) {
+          console.error('[STREAM] Failed to parse log:', e);
+        }
+      };
+      
+      eventSource.onerror = (error) => {
+        console.error('[STREAM] Console stream error:', error);
+        eventSource.close();
+      };
+      
+      console.log(`[STREAM] Started streaming logs for bot ${botId}`);
+      return eventSource;
+    };
+    
+    // Get WebSocket credentials for direct console access
+    window.getConsoleWebSocket = async function(botId) {
+      if (!botId) {
+        console.error('[WS] Bot ID required');
+        return null;
+      }
+      
+      try {
+        const response = await fetch(`/api/bots/${botId}/console-ws`, { credentials: 'include' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const { token, socket } = await response.json();
+        console.log(`[WS] Got WebSocket credentials for bot ${botId}`);
+        return { token, socket, botId };
+      } catch (error) {
+        console.error('[WS] Failed to get console credentials:', error);
+        return null;
+      }
+    };
+    
+    console.log('[CONSOLE-API] Console streaming API initialized');
   })();
   </script>
   </body>
