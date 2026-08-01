@@ -60208,9 +60208,9 @@ var Resend = class {
 };
 
 // src/lib/email.ts
-var DEVS = "ANONYMIKETECH <devs@anonymiketech.online>";
+var DEVS = "COURTNEY HOSTING <devs@courtneytech.xyz>";
 var YEAR = (/* @__PURE__ */ new Date()).getFullYear();
-var LOGO_URL = "https://bots.anonymiketech.online/images/opengraph.jpg";
+var LOGO_URL = "https://bots.courtneytech.xyz/images/opengraph.jpg";
 function getClient() {
   const key = process.env.RESEND_API_KEY;
   if (!key) return null;
@@ -60237,7 +60237,7 @@ var shell = (body) => `
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="supported-color-schemes" content="dark">
-  <title>ANONYMIKETECH</title>
+  <title>COURTNEY HOSTING</title>
 </head>
 <body style="margin:0;padding:0;background:#09090b;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
   <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
@@ -60259,11 +60259,11 @@ var shell = (body) => `
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td width="40" style="vertical-align:middle;">
-                  <img src="${LOGO_URL}" alt="ANONYMIKETECH" width="36" height="36"
+                  <img src="${LOGO_URL}" alt="COURTNEY HOSTING" width="36" height="36"
                     style="width:36px;height:36px;border-radius:10px;border:1px solid rgba(0,229,153,0.3);display:block;" />
                 </td>
                 <td style="vertical-align:middle;padding-left:10px;">
-                  <span style="font-size:11px;font-weight:900;letter-spacing:0.18em;color:#71717a;text-transform:uppercase;">ANONYMIKETECH</span>
+                  <span style="font-size:11px;font-weight:900;letter-spacing:0.18em;color:#71717a;text-transform:uppercase;">COURTNEY HOSTING</span>
                 </td>
               </tr>
             </table>
@@ -60286,10 +60286,10 @@ var shell = (body) => `
         <tr>
           <td style="padding:18px 32px;text-align:center;">
             <p style="margin:0 0 4px;font-size:11px;color:#3f3f46;">
-              \xA9 ${YEAR} ANONYMIKETECH \xB7 WhatsApp Bot Hosting Platform
+              \xA9 ${YEAR} COURTNEY HOSTING \xB7 WhatsApp Bot Hosting Platform
             </p>
             <p style="margin:0;font-size:10px;color:#27272a;">
-              <a href="https://bots.anonymiketech.online" style="color:#3f3f46;text-decoration:none;">bots.anonymiketech.online</a>
+              <a href="https://bots.courtneytech.xyz" style="color:#3f3f46;text-decoration:none;">bots.courtneytech.xyz</a>
             </p>
           </td>
         </tr>
@@ -60367,13 +60367,13 @@ async function sendVerificationEmail(to, code, name, profileImageUrl) {
   }
   await client.emails.send({
     from: DEVS,
-    reply_to: "devs@anonymiketech.online",
+    reply_to: "devs@courtneytech.xyz",
     to,
-    subject: `${code} \u2014 Your ANONYMIKETECH verification code`,
+    subject: `${code} \u2014 Your COURTNEY HOSTING verification code`,
     html: shell(body),
     text: `Hi${displayName},
 
-Your ANONYMIKETECH verification code is: ${code}
+Your COURTNEY HOSTING verification code is: ${code}
 
 It expires in 5 minutes.
 
@@ -60409,7 +60409,7 @@ async function sendWarningEmail(to, firstName, profileImageUrl) {
         <td style="padding:16px 20px;">
           <p style="margin:0 0 6px;font-size:14px;font-weight:800;color:#fde047;">\u26A0\uFE0F Account deletion warning</p>
           <p style="margin:0;font-size:13px;color:#a1a1aa;line-height:1.6;">
-            Your ANONYMIKETECH account has been inactive for <strong style="color:#fde047;">14 days</strong>.
+            Your COURTNEY HOSTING account has been inactive for <strong style="color:#fde047;">14 days</strong>.
             It will be <strong style="color:#f87171;">permanently deleted in 2 days</strong> if you don't log in.
             All your bots, data, and coin balance will be lost.
           </p>
@@ -60421,7 +60421,7 @@ async function sendWarningEmail(to, firstName, profileImageUrl) {
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto 20px;">
       <tr>
         <td align="center" style="border-radius:12px;background:#00e599;">
-          <a href="https://bots.anonymiketech.online/dashboard"
+          <a href="https://bots.courtneytech.xyz/dashboard"
             style="display:inline-block;padding:13px 40px;font-size:14px;font-weight:800;color:#000000;text-decoration:none;border-radius:12px;letter-spacing:0.01em;">
             Log In Now \u2192
           </a>
@@ -60458,17 +60458,17 @@ async function sendWarningEmail(to, firstName, profileImageUrl) {
   }
   await client.emails.send({
     from: DEVS,
-    reply_to: "devs@anonymiketech.online",
+    reply_to: "devs@courtneytech.xyz",
     to,
-    subject: "\u26A0\uFE0F Your ANONYMIKETECH account will be deleted in 2 days",
+    subject: "\u26A0\uFE0F Your COURTNEY HOSTING account will be deleted in 2 days",
     html: shell(body),
     text: `Hi${displayName},
 
-Your ANONYMIKETECH account has been inactive for 14 days.
+Your COURTNEY HOSTING account has been inactive for 14 days.
 
 It will be permanently deleted in 2 days if you don't log in.
 
-Log in now: https://bots.anonymiketech.online/dashboard
+Log in now: https://bots.courtneytech.xyz/dashboard
 
 If you no longer need this account, no action is required.`
   });
@@ -60487,14 +60487,14 @@ async function ensureWelcomeNotification(userId) {
     const existing = await db.query.notificationsTable.findFirst({
       where: and(
         eq(notificationsTable.userId, userId),
-        like(notificationsTable.title, "%Welcome to ANONYMIKETECH%")
+        like(notificationsTable.title, "%Welcome to COURTNEY HOSTING%")
       )
     });
     if (!existing) {
       await createNotification(
         userId,
         "success",
-        "Welcome to ANONYMIKETECH! \u{1F389}",
+        "Welcome to COURTNEY HOSTING! \u{1F389}",
         "You've received 100 free coins \u2014 deploy your first WhatsApp bot and go live in seconds!",
         "/bots"
       );
@@ -60775,7 +60775,7 @@ router2.post("/auth/email/verify", async (req, res) => {
   await createNotification(
     user.id,
     "success",
-    "Welcome to ANONYMIKETECH! \u{1F389}",
+    "Welcome to COURTNEY HOSTING! \u{1F389}",
     "Your account is ready. You've received 100 free coins \u2014 deploy your first WhatsApp bot and go live in seconds!",
     "/bots"
   );
@@ -60888,10 +60888,10 @@ router2.get("/auth/github/callback", async (req, res) => {
     }
     const [profileRes, emailsRes] = await Promise.all([
       fetch("https://api.github.com/user", {
-        headers: { Authorization: `Bearer ${tokenData.access_token}`, "User-Agent": "ANONYMIKETECH" }
+        headers: { Authorization: `Bearer ${tokenData.access_token}`, "User-Agent": "COURTNEY HOSTING" }
       }),
       fetch("https://api.github.com/user/emails", {
-        headers: { Authorization: `Bearer ${tokenData.access_token}`, "User-Agent": "ANONYMIKETECH" }
+        headers: { Authorization: `Bearer ${tokenData.access_token}`, "User-Agent": "COURTNEY HOSTING" }
       })
     ]);
     const profile = await profileRes.json();
@@ -60918,7 +60918,7 @@ router2.get("/auth/github/callback", async (req, res) => {
       await createNotification(
         user.id,
         "success",
-        "Welcome to ANONYMIKETECH! \u{1F389}",
+        "Welcome to COURTNEY HOSTING! \u{1F389}",
         "Your GitHub account is connected. You've received 100 free coins \u2014 deploy your first WhatsApp bot and go live in seconds!",
         "/bots"
       );
@@ -61022,7 +61022,7 @@ router2.get("/auth/google/callback", async (req, res) => {
       await createNotification(
         user.id,
         "success",
-        "Welcome to ANONYMIKETECH! \u{1F389}",
+        "Welcome to COURTNEY HOSTING! \u{1F389}",
         "Your Google account is connected. You've received 100 free coins \u2014 deploy your first WhatsApp bot and go live in seconds!",
         "/bots"
       );
@@ -61536,7 +61536,7 @@ async function uploadBotFiles(serverId, repoUrl, sessionEnvKey, sessionValue) {
     const repoPath = repoUrl.replace(/^https?:\/\/github\.com\//,"").replace(/\.git$/,"");
     const [owner, repo] = repoPath.split("/");
     const apiRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/HEAD?recursive=1`,
-      { headers: { "Accept": "application/vnd.github+json", "User-Agent": "anonymiketech" } });
+      { headers: { "Accept": "application/vnd.github+json", "User-Agent": "courtneytech" } });
     const tree = await apiRes.json();
     // Skip .env from repo — we write our own session .env after
     const files = (tree.tree ?? []).filter(f => f.type === "blob" && !f.path.includes("node_modules") && f.path !== ".env");
@@ -61901,7 +61901,7 @@ router3.get("/bots/check-repo", async (req, res) => {
   let defaultBranch = "main";
   try {
     const apiRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: { Accept: "application/vnd.github.v3+json", "User-Agent": "AnonymikeTech-Scanner/1.0" }
+      headers: { Accept: "application/vnd.github.v3+json", "User-Agent": "CourtneyHosting-Scanner/1.0" }
     });
     if (!apiRes.ok) {
       const reason2 = apiRes.status === 404 ? "Repository not found or is private." : `GitHub API returned ${apiRes.status}.`;
@@ -62324,7 +62324,7 @@ router5.post("/payments/initiate", async (req, res) => {
     phone: cleanPhone,
     amount: pkg.kesAmount,
     reference,
-    description: `ANONYMIKETECH ${pkg.coins} Coins`
+    description: `COURTNEY HOSTING ${pkg.coins} Coins`
   });
   if (!pfResult.success) {
     res.status(502).json({ error: pfResult.message ?? "Payment gateway error" });
@@ -62891,10 +62891,551 @@ app.get("/claim/:token", async (req, res) => {
     return res.redirect(`/?claimError=${encodeURIComponent("Something went wrong. Please try again.")}`);
   }
 });
+
+// =====================================================================
+// COURTNEY HOSTING — SUBDOMAIN MARKETPLACE
+// =====================================================================
+(function mountSubdomainRoutes() {
+  const BASE_DOMAIN = 'courtneytech.xyz';
+  const CF_BASE = 'https://api.cloudflare.com/client/v4';
+
+  // ---- simple in-process rate limiter ----
+  const _rl = new Map();
+  function rateLimit(key, max = 10, windowMs = 60000) {
+    const now = Date.now();
+    let e = _rl.get(key) || { n: 0, reset: now + windowMs };
+    if (now > e.reset) { e.n = 0; e.reset = now + windowMs; }
+    e.n++; _rl.set(key, e);
+    return e.n > max;
+  }
+  setInterval(() => { const now = Date.now(); for (const [k, v] of _rl) if (now > v.reset + 300000) _rl.delete(k); }, 5 * 60 * 1000);
+
+  // ---- Cloudflare helpers ----
+  async function cfRequest(method, cfPath, body) {
+    const token = process.env.CLOUDFLARE_API_TOKEN;
+    const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+    if (!token || !zoneId) throw new Error('Cloudflare credentials not configured (set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID)');
+    const url = CF_BASE + '/zones/' + zoneId + cfPath;
+    const res = await fetch(url, {
+      method,
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error((data.errors && data.errors[0] && data.errors[0].message) || 'Cloudflare API error');
+    return data.result;
+  }
+  async function cfCreateRecord(type, name, content, ttl, proxied, priority) {
+    const b = { type, name, content, ttl: ttl || 1, proxied: !!proxied };
+    if (priority != null) b.priority = priority;
+    return cfRequest('POST', '/dns_records', b);
+  }
+  async function cfUpdateRecord(id, type, name, content, ttl, proxied, priority) {
+    const b = { type, name, content, ttl: ttl || 1, proxied: !!proxied };
+    if (priority != null) b.priority = priority;
+    return cfRequest('PUT', '/dns_records/' + id, b);
+  }
+  async function cfDeleteRecord(id) { try { await cfRequest('DELETE', '/dns_records/' + id); } catch {} }
+  async function cfExists(sub) {
+    try { const r = await cfRequest('GET', '/dns_records?name=' + sub + '.' + BASE_DOMAIN + '&per_page=1'); return Array.isArray(r) && r.length > 0; }
+    catch { return false; }
+  }
+  async function logCf(userId, subId, action, status, details) {
+    try { await pool.query('INSERT INTO cloudflare_logs (user_id,subdomain_id,action,status,details) VALUES ($1,$2,$3,$4,$5)', [userId, subId, action, status, details ? JSON.stringify(details) : null]); }
+    catch {}
+  }
+
+  // ---- pricing helper ----
+  async function getPrice(name) {
+    const pm = await pool.query('SELECT kes_per_year FROM premium_subdomains WHERE name=$1', [name.toLowerCase()]);
+    if (pm.rows.length) return { tier: 'premium', kes: pm.rows[0].kes_per_year };
+    const reg = await pool.query("SELECT kes_per_year FROM subdomain_pricing WHERE tier='regular' AND active=true LIMIT 1");
+    return { tier: 'regular', kes: reg.rows.length ? reg.rows[0].kes_per_year : 100 };
+  }
+
+  // ---- validation ----
+  const RESERVED = new Set(['www','mail','ftp','admin','api','ns1','ns2','smtp','pop','imap','vpn','dev','staging','prod','test','blog','shop','store','app','cdn','static','assets','img','images','media','files','support','help','status','docs','wiki','forum','panel','cp','cpanel','webmail','secure','ssl','cloud','host','hosting','server','node','mysql','pg','redis','s3','bucket','upload','download','login','auth','register','signup','dashboard','billing','pay','payment','invoice','ticket']);
+  function validateName(name) {
+    if (!name || typeof name !== 'string') return 'Subdomain name is required';
+    const c = name.toLowerCase().trim();
+    if (c.length < 2) return 'Must be at least 2 characters';
+    if (c.length > 63) return 'Must be 63 characters or less';
+    if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(c) && !/^[a-z0-9]$/.test(c)) return 'Only letters, numbers, and hyphens. Must start and end with a letter or number.';
+    if (RESERVED.has(c)) return '"' + c + '" is a reserved name and cannot be registered';
+    return null;
+  }
+
+  // ---- admin check (reuse existing isAdmin) ----
+  function reqIsAdmin(req) {
+    const emails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    return emails.length > 0 && req.isAuthenticated() && emails.includes((req.user && req.user.email || '').toLowerCase());
+  }
+  function adminOnly(req, res, next) {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    if (!reqIsAdmin(req)) return res.status(403).json({ error: 'Forbidden: Admin only' });
+    next();
+  }
+
+  // ============================
+  // USER SUBDOMAIN ROUTER
+  // ============================
+  const sdRouter = import_express11.default.Router();
+
+  // GET /api/subdomains
+  sdRouter.get('/', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const r = await pool.query(
+        'SELECT s.* FROM subdomains s WHERE s.user_id=$1 ORDER BY s.created_at DESC',
+        [req.user.id]
+      );
+      res.json({ subdomains: r.rows });
+    } catch (err) { logger.error({ err }, 'GET /api/subdomains'); res.status(500).json({ error: 'Failed to fetch subdomains' }); }
+  });
+
+  // POST /api/subdomains/check
+  sdRouter.post('/check', async (req, res) => {
+    const ip = req.ip || 'unknown';
+    if (rateLimit('chk:' + ip, 40, 60000)) return res.status(429).json({ error: 'Too many requests. Please slow down.' });
+    const { name } = req.body;
+    const err = validateName(name);
+    if (err) return res.status(400).json({ error: err, available: false });
+    const clean = name.toLowerCase().trim();
+    try {
+      const db2 = await pool.query('SELECT id FROM subdomains WHERE subdomain=$1', [clean]);
+      if (db2.rows.length) return res.json({ available: false, name: clean });
+      if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
+        if (await cfExists(clean)) return res.json({ available: false, name: clean });
+      }
+      const pricing = await getPrice(clean);
+      res.json({ available: true, name: clean, fullDomain: clean + '.' + BASE_DOMAIN, ...pricing });
+    } catch (e) { logger.error({ err: e }, 'subdomain check'); res.status(500).json({ error: 'Check failed' }); }
+  });
+
+  // GET /api/subdomains/pricing
+  sdRouter.get('/pricing', async (_req, res) => {
+    try {
+      const p = await pool.query('SELECT * FROM subdomain_pricing WHERE active=true ORDER BY kes_per_year');
+      const pm = await pool.query('SELECT * FROM premium_subdomains ORDER BY kes_per_year DESC LIMIT 100');
+      res.json({ pricing: p.rows, premium: pm.rows });
+    } catch { res.status(500).json({ error: 'Failed to fetch pricing' }); }
+  });
+
+  // POST /api/subdomains/promo/validate
+  sdRouter.post('/promo/validate', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    const { code, kes_amount } = req.body;
+    if (!code) return res.status(400).json({ error: 'Code is required' });
+    try {
+      const r = await pool.query(
+        "SELECT * FROM promo_codes WHERE code=$1 AND active=true AND (valid_until IS NULL OR valid_until>NOW()) AND (max_uses IS NULL OR used_count<max_uses)",
+        [code.toUpperCase().trim()]
+      );
+      if (!r.rows.length) return res.status(404).json({ error: 'Invalid or expired promo code' });
+      const p = r.rows[0];
+      const discount = p.discount_type === 'percent' ? Math.floor((kes_amount || 0) * p.discount_value / 100) : Math.min(p.discount_value, kes_amount || 0);
+      res.json({ valid: true, code: p.code, discount_type: p.discount_type, discount_value: p.discount_value, discount_kes: discount, description: p.description });
+    } catch (e) { res.status(500).json({ error: 'Validation failed' }); }
+  });
+
+  // GET /api/subdomains/payment-history
+  sdRouter.get('/payment-history', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const r = await pool.query('SELECT * FROM subdomain_payments WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50', [req.user.id]);
+      res.json({ payments: r.rows });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  // POST /api/subdomains/purchase
+  sdRouter.post('/purchase', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    if (rateLimit('buy:' + req.user.id, 5, 60000)) return res.status(429).json({ error: 'Too many purchase attempts. Please wait.' });
+    const { name, promo_code, ip_address } = req.body;
+    const verr = validateName(name);
+    if (verr) return res.status(400).json({ error: verr });
+    const clean = name.toLowerCase().trim();
+    try {
+      // availability check (with row lock to prevent race)
+      const dup = await pool.query('SELECT id FROM subdomains WHERE subdomain=$1', [clean]);
+      if (dup.rows.length) return res.status(409).json({ error: 'This subdomain is already registered. Please choose another name.' });
+
+      const pricing = await getPrice(clean);
+      let finalKes = pricing.kes, discountKes = 0, appliedPromo = null;
+
+      if (promo_code) {
+        const pr = await pool.query("SELECT * FROM promo_codes WHERE code=$1 AND active=true AND (valid_until IS NULL OR valid_until>NOW()) AND (max_uses IS NULL OR used_count<max_uses)", [promo_code.toUpperCase().trim()]);
+        if (pr.rows.length) {
+          appliedPromo = pr.rows[0];
+          discountKes = appliedPromo.discount_type === 'percent' ? Math.floor(finalKes * appliedPromo.discount_value / 100) : Math.min(appliedPromo.discount_value, finalKes);
+          finalKes = Math.max(0, finalKes - discountKes);
+        }
+      }
+
+      const coinsNeeded = finalKes * 10;
+      const userQ = await pool.query('SELECT coins FROM users WHERE id=$1', [req.user.id]);
+      if (!userQ.rows.length) return res.status(404).json({ error: 'User not found' });
+      if (userQ.rows[0].coins < coinsNeeded) {
+        return res.status(402).json({ error: 'Insufficient coins. Need ' + coinsNeeded + ' coins (' + finalKes + ' KES) but have ' + userQ.rows[0].coins + '.', required: coinsNeeded, available: userQ.rows[0].coins });
+      }
+
+      // deduct coins
+      await pool.query('UPDATE users SET coins=coins-$1 WHERE id=$2', [coinsNeeded, req.user.id]);
+
+      // create Cloudflare record
+      let cfRecordId = null;
+      const targetIp = (ip_address && ip_address.trim()) || process.env.DEFAULT_BOT_IP || '1.2.3.4';
+      if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ZONE_ID) {
+        try {
+          if (await cfExists(clean)) {
+            await pool.query('UPDATE users SET coins=coins+$1 WHERE id=$2', [coinsNeeded, req.user.id]);
+            return res.status(409).json({ error: 'This subdomain is already registered. Please choose another name.' });
+          }
+          const cf = await cfCreateRecord('A', clean + '.' + BASE_DOMAIN, targetIp, 1, false);
+          cfRecordId = cf.id;
+        } catch (cfErr) {
+          await pool.query('UPDATE users SET coins=coins+$1 WHERE id=$2', [coinsNeeded, req.user.id]);
+          logger.error({ err: cfErr }, 'CF create failed');
+          return res.status(500).json({ error: 'DNS activation failed: ' + cfErr.message + '. Your coins have been refunded.' });
+        }
+      }
+
+      const expiresAt = new Date(); expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      const ins = await pool.query(
+        "INSERT INTO subdomains (user_id,subdomain,full_domain,tier,status,cloudflare_record_id,cloudflare_zone_id,ip_address,expires_at) VALUES ($1,$2,$3,$4,'active',$5,$6,$7,$8) RETURNING *",
+        [req.user.id, clean, clean + '.' + BASE_DOMAIN, pricing.tier, cfRecordId, process.env.CLOUDFLARE_ZONE_ID || null, targetIp, expiresAt]
+      );
+      const sd = ins.rows[0];
+
+      await pool.query(
+        "INSERT INTO subdomain_payments (user_id,subdomain_id,subdomain_name,type,method,kes_amount,coins_used,promo_code,discount_kes,status) VALUES ($1,$2,$3,'purchase','wallet',$4,$5,$6,$7,'completed')",
+        [req.user.id, sd.id, sd.full_domain, finalKes, coinsNeeded, appliedPromo ? appliedPromo.code : null, discountKes]
+      );
+      if (appliedPromo) await pool.query('UPDATE promo_codes SET used_count=used_count+1 WHERE id=$1', [appliedPromo.id]);
+      await logCf(req.user.id, sd.id, 'create_record', cfRecordId ? 'success' : 'skipped', { subdomain: clean });
+      await createNotification(req.user.id, 'success', '🎉 Subdomain Activated!', sd.full_domain + ' is now live and ready to use!');
+
+      logger.info({ userId: req.user.id, subdomain: clean }, '[SUBDOMAINS] Purchased');
+      res.status(201).json({ success: true, subdomain: sd, message: clean + '.' + BASE_DOMAIN + ' is now active!', coins_spent: coinsNeeded });
+    } catch (e) { logger.error({ err: e }, 'purchase subdomain'); res.status(500).json({ error: 'Purchase failed. Please try again.' }); }
+  });
+
+  // POST /api/subdomains/renew/:id
+  sdRouter.post('/renew/:id', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const sdQ = await pool.query('SELECT * FROM subdomains WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+      if (!sdQ.rows.length) return res.status(404).json({ error: 'Subdomain not found' });
+      const sd = sdQ.rows[0];
+      const pricing = await getPrice(sd.subdomain);
+      const coinsNeeded = pricing.kes * 10;
+      const userQ = await pool.query('SELECT coins FROM users WHERE id=$1', [req.user.id]);
+      if (userQ.rows[0].coins < coinsNeeded) return res.status(402).json({ error: 'Insufficient coins. Need ' + coinsNeeded + '.', required: coinsNeeded, available: userQ.rows[0].coins });
+      await pool.query('UPDATE users SET coins=coins-$1 WHERE id=$2', [coinsNeeded, req.user.id]);
+      const newExp = new Date(Math.max(Date.now(), new Date(sd.expires_at).getTime()));
+      newExp.setFullYear(newExp.getFullYear() + 1);
+      await pool.query("UPDATE subdomains SET expires_at=$1,renewal_reminder_sent=false,status='active',updated_at=NOW() WHERE id=$2", [newExp, sd.id]);
+      await pool.query("INSERT INTO subdomain_payments (user_id,subdomain_id,subdomain_name,type,method,kes_amount,coins_used,status) VALUES ($1,$2,$3,'renewal','wallet',$4,$5,'completed')", [req.user.id, sd.id, sd.full_domain, pricing.kes, coinsNeeded]);
+      await createNotification(req.user.id, 'success', '✅ Subdomain Renewed', sd.full_domain + ' renewed until ' + newExp.toLocaleDateString());
+      res.json({ success: true, message: 'Renewed until ' + newExp.toLocaleDateString(), expires_at: newExp });
+    } catch (e) { logger.error({ err: e }, 'renew subdomain'); res.status(500).json({ error: 'Renewal failed' }); }
+  });
+
+  // DELETE /api/subdomains/:id
+  sdRouter.delete('/:id', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const sdQ = await pool.query('SELECT * FROM subdomains WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+      if (!sdQ.rows.length) return res.status(404).json({ error: 'Subdomain not found' });
+      const sd = sdQ.rows[0];
+      if (sd.cloudflare_record_id) await cfDeleteRecord(sd.cloudflare_record_id);
+      await pool.query('DELETE FROM subdomains WHERE id=$1', [sd.id]);
+      await logCf(req.user.id, null, 'delete_subdomain', 'success', { subdomain: sd.subdomain });
+      res.json({ success: true, message: sd.full_domain + ' deleted' });
+    } catch (e) { res.status(500).json({ error: 'Delete failed' }); }
+  });
+
+  // GET /api/subdomains/:id/dns
+  sdRouter.get('/:id/dns', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const own = await pool.query('SELECT id FROM subdomains WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+      if (!own.rows.length) return res.status(404).json({ error: 'Subdomain not found' });
+      const r = await pool.query('SELECT * FROM subdomain_dns_records WHERE subdomain_id=$1 ORDER BY type,created_at', [req.params.id]);
+      res.json({ records: r.rows });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  // POST /api/subdomains/:id/dns
+  sdRouter.post('/:id/dns', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    const allowed = ['A','AAAA','CNAME','TXT','MX','NS','SRV'];
+    const { type, name, content, ttl = 1, priority, proxied = false } = req.body;
+    if (!allowed.includes(type)) return res.status(400).json({ error: 'Invalid type. Allowed: ' + allowed.join(', ') });
+    if (!name || !content) return res.status(400).json({ error: 'Name and content required' });
+    try {
+      const sdQ = await pool.query('SELECT * FROM subdomains WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+      if (!sdQ.rows.length) return res.status(404).json({ error: 'Subdomain not found' });
+      if (sdQ.rows[0].status === 'suspended') return res.status(403).json({ error: 'Subdomain is suspended' });
+      let cfId = null;
+      if (process.env.CLOUDFLARE_API_TOKEN) {
+        try { const cf = await cfCreateRecord(type, name, content, ttl, !!proxied, priority); cfId = cf.id; }
+        catch (cfE) { return res.status(500).json({ error: 'Cloudflare error: ' + cfE.message }); }
+      }
+      const ins = await pool.query(
+        'INSERT INTO subdomain_dns_records (subdomain_id,cloudflare_record_id,type,name,content,ttl,priority,proxied) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+        [req.params.id, cfId, type, name, content, ttl, priority || null, !!proxied]
+      );
+      await logCf(req.user.id, req.params.id, 'add_dns', 'success', { type, name });
+      res.status(201).json({ record: ins.rows[0] });
+    } catch (e) { logger.error({ err: e }, 'add dns'); res.status(500).json({ error: 'Failed to add DNS record' }); }
+  });
+
+  // PUT /api/subdomains/:id/dns/:rid
+  sdRouter.put('/:id/dns/:rid', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    const allowed = ['A','AAAA','CNAME','TXT','MX','NS','SRV'];
+    const { type, name, content, ttl = 1, priority, proxied = false } = req.body;
+    if (!allowed.includes(type)) return res.status(400).json({ error: 'Invalid type' });
+    try {
+      const own = await pool.query('SELECT id FROM subdomains WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+      if (!own.rows.length) return res.status(404).json({ error: 'Subdomain not found' });
+      const recQ = await pool.query('SELECT * FROM subdomain_dns_records WHERE id=$1 AND subdomain_id=$2', [req.params.rid, req.params.id]);
+      if (!recQ.rows.length) return res.status(404).json({ error: 'DNS record not found' });
+      const rec = recQ.rows[0];
+      if (rec.cloudflare_record_id && process.env.CLOUDFLARE_API_TOKEN) {
+        try { await cfUpdateRecord(rec.cloudflare_record_id, type, name, content, ttl, !!proxied, priority); }
+        catch (cfE) { return res.status(500).json({ error: 'Cloudflare error: ' + cfE.message }); }
+      }
+      const upd = await pool.query('UPDATE subdomain_dns_records SET type=$1,name=$2,content=$3,ttl=$4,priority=$5,proxied=$6,updated_at=NOW() WHERE id=$7 RETURNING *', [type, name, content, ttl, priority || null, !!proxied, rec.id]);
+      res.json({ record: upd.rows[0] });
+    } catch (e) { res.status(500).json({ error: 'Failed to update' }); }
+  });
+
+  // DELETE /api/subdomains/:id/dns/:rid
+  sdRouter.delete('/:id/dns/:rid', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const own = await pool.query('SELECT id FROM subdomains WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+      if (!own.rows.length) return res.status(404).json({ error: 'Subdomain not found' });
+      const recQ = await pool.query('SELECT * FROM subdomain_dns_records WHERE id=$1 AND subdomain_id=$2', [req.params.rid, req.params.id]);
+      if (!recQ.rows.length) return res.status(404).json({ error: 'DNS record not found' });
+      if (recQ.rows[0].cloudflare_record_id) await cfDeleteRecord(recQ.rows[0].cloudflare_record_id);
+      await pool.query('DELETE FROM subdomain_dns_records WHERE id=$1', [req.params.rid]);
+      res.json({ success: true });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  // POST /api/subdomains/:id/connect-bot
+  sdRouter.post('/:id/connect-bot', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    const { bot_id } = req.body;
+    if (!bot_id) return res.status(400).json({ error: 'bot_id required' });
+    try {
+      const sdQ = await pool.query('SELECT id FROM subdomains WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+      if (!sdQ.rows.length) return res.status(404).json({ error: 'Subdomain not found' });
+      const botQ = await pool.query('SELECT id FROM bots WHERE id=$1 AND user_id=$2', [bot_id, req.user.id]);
+      if (!botQ.rows.length) return res.status(404).json({ error: 'Bot not found' });
+      await pool.query('INSERT INTO subdomain_bot_connections (subdomain_id,bot_id,user_id) VALUES ($1,$2,$3) ON CONFLICT (subdomain_id,bot_id) DO NOTHING', [req.params.id, bot_id, req.user.id]);
+      res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Failed to connect bot' }); }
+  });
+
+  // DELETE /api/subdomains/:id/connect-bot/:botId
+  sdRouter.delete('/:id/connect-bot/:botId', async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const own = await pool.query('SELECT id FROM subdomains WHERE id=$1 AND user_id=$2', [req.params.id, req.user.id]);
+      if (!own.rows.length) return res.status(404).json({ error: 'Subdomain not found' });
+      await pool.query('DELETE FROM subdomain_bot_connections WHERE subdomain_id=$1 AND bot_id=$2', [req.params.id, req.params.botId]);
+      res.json({ success: true });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  // ============================
+  // ADMIN SUBDOMAIN ROUTER
+  // ============================
+  const adminSdRouter = import_express11.default.Router();
+
+  adminSdRouter.get('/stats', adminOnly, async (req, res) => {
+    try {
+      const s = await pool.query("SELECT COUNT(*) FILTER (WHERE status='active') as total_active, COUNT(*) FILTER (WHERE tier='premium' AND status='active') as premium_active, COUNT(*) FILTER (WHERE status='suspended') as total_suspended, COUNT(*) FILTER (WHERE status='expired') as total_expired, COUNT(*) FILTER (WHERE expires_at<NOW()+INTERVAL '30 days' AND expires_at>NOW() AND status='active') as expiring_soon, COUNT(DISTINCT user_id) as active_users FROM subdomains");
+      const rev = await pool.query("SELECT COALESCE(SUM(kes_amount),0) as total FROM subdomain_payments WHERE status='completed'");
+      res.json({ ...s.rows[0], total_revenue_kes: rev.rows[0].total });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.get('/', adminOnly, async (req, res) => {
+    const { search, status, page = 1, limit = 50 } = req.query;
+    const offset = (Number(page) - 1) * Number(limit);
+    let where = 'WHERE 1=1'; const params = [];
+    if (status) { params.push(status); where += ' AND s.status=' + '$' + params.length; }
+    if (search) { params.push('%' + search + '%'); where += ' AND (s.subdomain ILIKE ' + '$' + params.length + ' OR u.email ILIKE ' + '$' + params.length + ')'; }
+    params.push(Number(limit)); params.push(offset);
+    try {
+      const r = await pool.query('SELECT s.*,u.email as owner_email,u.first_name as owner_name FROM subdomains s JOIN users u ON u.id=s.user_id ' + where + ' ORDER BY s.created_at DESC LIMIT ' + '$' + (params.length-1) + ' OFFSET ' + '$' + params.length, params);
+      const cnt = await pool.query('SELECT COUNT(*) FROM subdomains s JOIN users u ON u.id=s.user_id ' + where, params.slice(0,-2));
+      res.json({ subdomains: r.rows, total: Number(cnt.rows[0].count) });
+    } catch (e) { logger.error({ err: e }, 'admin get subdomains'); res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.put('/:id/suspend', adminOnly, async (req, res) => {
+    try {
+      const r = await pool.query(
+        "UPDATE subdomains SET status='suspended',suspended_at=NOW(),suspended_reason=" + "$1,updated_at=NOW() WHERE id=" + "$2 RETURNING *",
+        [req.body.reason || null, req.params.id]
+      );
+      if (!r.rows.length) return res.status(404).json({ error: 'Not found' });
+      await createNotification(r.rows[0].user_id, 'warning', '\u26a0\ufe0f Subdomain Suspended', r.rows[0].full_domain + ' has been suspended.');
+      res.json({ success: true, subdomain: r.rows[0] });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.put('/:id/restore', adminOnly, async (req, res) => {
+    try {
+      const r = await pool.query(
+        "UPDATE subdomains SET status='active',suspended_at=NULL,suspended_reason=NULL,updated_at=NOW() WHERE id=" + "$1 RETURNING *",
+        [req.params.id]
+      );
+      if (!r.rows.length) return res.status(404).json({ error: 'Not found' });
+      await createNotification(r.rows[0].user_id, 'success', '\u2705 Subdomain Restored', r.rows[0].full_domain + ' has been restored.');
+      res.json({ success: true, subdomain: r.rows[0] });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.delete('/:id', adminOnly, async (req, res) => {
+    try {
+      const sdQ = await pool.query('SELECT * FROM subdomains WHERE id=' + '$1', [req.params.id]);
+      if (!sdQ.rows.length) return res.status(404).json({ error: 'Not found' });
+      const sd = sdQ.rows[0];
+      if (sd.cloudflare_record_id) await cfDeleteRecord(sd.cloudflare_record_id);
+      await pool.query('DELETE FROM subdomains WHERE id=' + '$1', [sd.id]);
+      res.json({ success: true });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.put('/:id/force-renew', adminOnly, async (req, res) => {
+    try {
+      const sdQ = await pool.query('SELECT * FROM subdomains WHERE id=' + '$1', [req.params.id]);
+      if (!sdQ.rows.length) return res.status(404).json({ error: 'Not found' });
+      const sd = sdQ.rows[0];
+      const ne = new Date(Math.max(Date.now(), new Date(sd.expires_at).getTime()));
+      ne.setFullYear(ne.getFullYear() + 1);
+      const r = await pool.query(
+        "UPDATE subdomains SET expires_at=" + "$1,renewal_reminder_sent=false,status='active',updated_at=NOW() WHERE id=" + "$2 RETURNING *",
+        [ne, sd.id]
+      );
+      await createNotification(sd.user_id, 'success', '\u2705 Subdomain Renewed', 'Admin renewed ' + sd.full_domain + ' until ' + ne.toLocaleDateString());
+      res.json({ success: true, subdomain: r.rows[0] });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.get('/pricing', adminOnly, async (_req, res) => {
+    try {
+      const p = await pool.query('SELECT * FROM subdomain_pricing ORDER BY tier,kes_per_year');
+      const pm = await pool.query('SELECT * FROM premium_subdomains ORDER BY kes_per_year DESC');
+      const pc = await pool.query('SELECT * FROM promo_codes ORDER BY created_at DESC');
+      res.json({ pricing: p.rows, premium: pm.rows, promo_codes: pc.rows });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.put('/pricing/:id', adminOnly, async (req, res) => {
+    const { kes_per_year, coins_per_year, description, active } = req.body;
+    try {
+      const r = await pool.query(
+        'UPDATE subdomain_pricing SET kes_per_year=' + '$1,coins_per_year=' + '$2,description=' + '$3,active=' + '$4,updated_at=NOW() WHERE id=' + '$5 RETURNING *',
+        [kes_per_year, coins_per_year || kes_per_year * 10, description, active !== false, req.params.id]
+      );
+      if (!r.rows.length) return res.status(404).json({ error: 'Not found' });
+      res.json({ success: true, pricing: r.rows[0] });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.post('/premium', adminOnly, async (req, res) => {
+    const { name, kes_per_year } = req.body;
+    if (!name) return res.status(400).json({ error: 'Name required' });
+    try {
+      const r = await pool.query(
+        'INSERT INTO premium_subdomains (name,kes_per_year) VALUES (' + '$1,' + '$2) ON CONFLICT (name) DO UPDATE SET kes_per_year=' + '$2 RETURNING *',
+        [name.toLowerCase().trim(), kes_per_year || 500]
+      );
+      res.status(201).json({ success: true, premium: r.rows[0] });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.delete('/premium/:name', adminOnly, async (req, res) => {
+    try {
+      await pool.query('DELETE FROM premium_subdomains WHERE name=' + '$1', [req.params.name]);
+      res.json({ success: true });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  adminSdRouter.post('/promo-codes', adminOnly, async (req, res) => {
+    const { code, description, discount_type = 'percent', discount_value, max_uses, valid_until } = req.body;
+    if (!code || !discount_value) return res.status(400).json({ error: 'Code and discount_value required' });
+    try {
+      const r = await pool.query(
+        'INSERT INTO promo_codes (code,description,discount_type,discount_value,max_uses,valid_until) VALUES (' + '$1,' + '$2,' + '$3,' + '$4,' + '$5,' + '$6) RETURNING *',
+        [code.toUpperCase().trim(), description, discount_type, discount_value, max_uses || null, valid_until || null]
+      );
+      res.status(201).json({ success: true, promo_code: r.rows[0] });
+    } catch (e) {
+      if (e.code === '23505') return res.status(409).json({ error: 'Code already exists' });
+      res.status(500).json({ error: 'Failed' });
+    }
+  });
+
+  adminSdRouter.delete('/promo-codes/:id', adminOnly, async (req, res) => {
+    try {
+      await pool.query('DELETE FROM promo_codes WHERE id=' + '$1', [req.params.id]);
+      res.json({ success: true });
+    } catch { res.status(500).json({ error: 'Failed' }); }
+  });
+
+  // ---- subdomain expiry maintenance ----
+  async function runSubdomainMaint() {
+    try {
+      const exp = await pool.query("UPDATE subdomains SET status='expired',updated_at=NOW() WHERE status='active' AND expires_at<NOW() RETURNING id,user_id,full_domain");
+      for (const sd of exp.rows) {
+        try { await createNotification(sd.user_id, 'error', '\u274c Subdomain Expired', sd.full_domain + ' has expired. Renew to restore access.'); } catch {}
+      }
+      const rem = await pool.query("UPDATE subdomains SET renewal_reminder_sent=true,updated_at=NOW() WHERE status='active' AND renewal_reminder_sent=false AND expires_at BETWEEN NOW() AND NOW()+INTERVAL '7 days' RETURNING id,user_id,full_domain");
+      for (const sd of rem.rows) {
+        try { await createNotification(sd.user_id, 'warning', '\u23f0 Subdomain Expiring Soon', sd.full_domain + ' expires in less than 7 days. Please renew!'); } catch {}
+      }
+      if (exp.rows.length || rem.rows.length) logger.info({ expired: exp.rows.length, reminders: rem.rows.length }, '[SUBDOMAIN] Maintenance');
+    } catch (e) { logger.error({ err: e }, '[SUBDOMAIN] Maintenance error'); }
+  }
+  setInterval(() => runSubdomainMaint().catch(() => {}), 6 * 60 * 60 * 1000);
+  runSubdomainMaint().catch(() => {});
+
+  // ---- mount routers ----
+  app.use('/api/subdomains', sdRouter);
+  app.use('/api/admin/subdomains', adminSdRouter);
+
+  logger.info('[SUBDOMAINS] Subdomain marketplace routes mounted');
+})();
+
+// robots.txt
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain').send('User-agent: *\nAllow: /\nDisallow: /dashboard\nDisallow: /admin\nDisallow: /api/\n\nSitemap: https://courtneytech.xyz/sitemap.xml');
+});
+
+// sitemap.xml
+app.get('/sitemap.xml', (_req, res) => {
+  const host = 'https://courtneytech.xyz';
+  const now = new Date().toISOString().split('T')[0];
+  res.type('application/xml').send(
+    '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>' + host + '</loc><lastmod>' + now + '</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>\n  <url><loc>' + host + '/subdomains</loc><lastmod>' + now + '</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>\n</urlset>'
+  );
+});
+
 if (process.env.SERVE_STATIC === "true") {
   const __dirname2 = path.dirname(fileURLToPath(import.meta.url));
   const publicDir = path.resolve(__dirname2, "./public");
   app.use(import_express11.default.static(publicDir));
+  // Subdomain marketplace page (before the catch-all)
+  app.get("/subdomains", (_req, res) => res.sendFile(path.join(publicDir, "subdomains.html")));
   app.get("/{*path}", (_req, res) => {
     res.sendFile(path.join(publicDir, "index.html"));
   });

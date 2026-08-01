@@ -1,4 +1,4 @@
--- ANONYMIKETECH Database Schema
+-- COURTNEY HOSTING Database Schema
 -- Run this once on your PostgreSQL database before starting the server
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -144,3 +144,129 @@ CREATE TABLE IF NOT EXISTS "partner_applications" (
   "status" varchar(20) NOT NULL DEFAULT 'pending',
   "created_at" timestamptz NOT NULL DEFAULT now()
 );
+
+-- ============================================================
+-- COURTNEY HOSTING: SUBDOMAIN MARKETPLACE
+-- ============================================================
+
+-- Subdomain pricing tiers (admin-controlled)
+CREATE TABLE IF NOT EXISTS "subdomain_pricing" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "tier" varchar(20) NOT NULL DEFAULT 'regular',
+  "name" varchar(100) NOT NULL,
+  "kes_per_year" integer NOT NULL,
+  "coins_per_year" integer NOT NULL DEFAULT 0,
+  "description" text,
+  "active" boolean NOT NULL DEFAULT true,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
+);
+
+-- Premium subdomain names (admin-curated list)
+CREATE TABLE IF NOT EXISTS "premium_subdomains" (
+  "name" varchar(100) PRIMARY KEY,
+  "kes_per_year" integer NOT NULL DEFAULT 500,
+  "created_at" timestamptz NOT NULL DEFAULT now()
+);
+
+-- Purchased subdomains
+CREATE TABLE IF NOT EXISTS "subdomains" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "user_id" varchar NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "subdomain" varchar(100) NOT NULL,
+  "full_domain" varchar(200) NOT NULL,
+  "tier" varchar(20) NOT NULL DEFAULT 'regular',
+  "status" varchar(20) NOT NULL DEFAULT 'active',
+  "cloudflare_record_id" varchar(100),
+  "cloudflare_zone_id" varchar(100),
+  "ip_address" varchar(45),
+  "expires_at" timestamptz NOT NULL,
+  "renewal_reminder_sent" boolean NOT NULL DEFAULT false,
+  "suspended_at" timestamptz,
+  "suspended_reason" text,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT "subdomains_subdomain_unique" UNIQUE ("subdomain")
+);
+CREATE INDEX IF NOT EXISTS "idx_subdomains_user_id" ON "subdomains" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_subdomains_expires_at" ON "subdomains" ("expires_at");
+CREATE INDEX IF NOT EXISTS "idx_subdomains_status" ON "subdomains" ("status");
+
+-- DNS records per subdomain
+CREATE TABLE IF NOT EXISTS "subdomain_dns_records" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "subdomain_id" varchar NOT NULL REFERENCES "subdomains"("id") ON DELETE CASCADE,
+  "cloudflare_record_id" varchar(100),
+  "type" varchar(10) NOT NULL,
+  "name" varchar(255) NOT NULL,
+  "content" varchar(1000) NOT NULL,
+  "ttl" integer NOT NULL DEFAULT 1,
+  "priority" integer,
+  "proxied" boolean NOT NULL DEFAULT false,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS "idx_dns_subdomain_id" ON "subdomain_dns_records" ("subdomain_id");
+
+-- Subdomain payment history
+CREATE TABLE IF NOT EXISTS "subdomain_payments" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "user_id" varchar NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "subdomain_id" varchar REFERENCES "subdomains"("id") ON DELETE SET NULL,
+  "subdomain_name" varchar(200) NOT NULL,
+  "type" varchar(20) NOT NULL DEFAULT 'purchase',
+  "method" varchar(20) NOT NULL DEFAULT 'wallet',
+  "kes_amount" integer NOT NULL,
+  "coins_used" integer NOT NULL DEFAULT 0,
+  "promo_code" varchar(50),
+  "discount_kes" integer NOT NULL DEFAULT 0,
+  "status" varchar(20) NOT NULL DEFAULT 'completed',
+  "mpesa_checkout_id" varchar,
+  "mpesa_code" varchar,
+  "created_at" timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS "idx_subdomain_payments_user_id" ON "subdomain_payments" ("user_id");
+
+-- Cloudflare audit log
+CREATE TABLE IF NOT EXISTS "cloudflare_logs" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "user_id" varchar REFERENCES "users"("id") ON DELETE SET NULL,
+  "subdomain_id" varchar REFERENCES "subdomains"("id") ON DELETE SET NULL,
+  "action" varchar(50) NOT NULL,
+  "status" varchar(20) NOT NULL DEFAULT 'success',
+  "details" jsonb,
+  "created_at" timestamptz NOT NULL DEFAULT now()
+);
+
+-- Subdomain to bot connections
+CREATE TABLE IF NOT EXISTS "subdomain_bot_connections" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "subdomain_id" varchar NOT NULL REFERENCES "subdomains"("id") ON DELETE CASCADE,
+  "bot_id" varchar NOT NULL REFERENCES "bots"("id") ON DELETE CASCADE,
+  "user_id" varchar NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT "uq_subdomain_bot" UNIQUE ("subdomain_id", "bot_id")
+);
+
+-- Promo codes
+CREATE TABLE IF NOT EXISTS "promo_codes" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "code" varchar(50) NOT NULL,
+  "description" text,
+  "discount_type" varchar(20) NOT NULL DEFAULT 'percent',
+  "discount_value" integer NOT NULL,
+  "max_uses" integer,
+  "used_count" integer NOT NULL DEFAULT 0,
+  "valid_from" timestamptz NOT NULL DEFAULT now(),
+  "valid_until" timestamptz,
+  "active" boolean NOT NULL DEFAULT true,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT "uq_promo_code" UNIQUE ("code")
+);
+
+-- Default pricing data (idempotent)
+INSERT INTO "subdomain_pricing" ("id", "tier", "name", "kes_per_year", "coins_per_year", "description")
+VALUES
+  (gen_random_uuid(), 'regular', 'Regular Subdomain', 100, 1000, 'Any available name under courtneytech.xyz — 1 year'),
+  (gen_random_uuid(), 'premium', 'Premium Subdomain', 500, 5000, 'Short, brandable, or high-demand names — 1 year')
+ON CONFLICT DO NOTHING;

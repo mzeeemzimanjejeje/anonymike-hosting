@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>ANONYMIKETECH - WhatsApp Bot Platform</title>
+    <title>Courtney Hosting - Bot Hosting &amp; Subdomain Platform</title>
+    <meta name="description" content="Courtney Hosting — deploy WhatsApp bots, get your own subdomain under courtneytech.xyz, and manage DNS instantly.">
+    <meta property="og:title" content="Courtney Hosting">
+    <meta property="og:description" content="WhatsApp Bot Hosting &amp; Subdomain Platform — deploy bots, get a subdomain, manage DNS.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/opengraph.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Courtney Hosting">
+    <meta name="twitter:description" content="WhatsApp Bot Hosting &amp; Subdomain Platform">
+    <link rel="canonical" href="https://courtneytech.xyz">
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -12,7 +21,7 @@
     <meta name="theme-color" content="#00e599" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="ANONYMIKETECH" />
+    <meta name="apple-mobile-web-app-title" content="Courtney Hosting" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -585,7 +594,7 @@
     window.amtNativeShare = function() {
       if (!generatedLink) return;
       if (navigator.share) {
-        navigator.share({ title: 'Claim your free coins!', text: '🪙 Someone sent you coins on ANONYMIKETECH — claim them here:', url: generatedLink }).catch(() => {});
+        navigator.share({ title: 'Claim your free coins!', text: '🪙 Someone sent you coins on Courtney Hosting — claim them here:', url: generatedLink }).catch(() => {});
       } else {
         amtCopyLink();
       }
@@ -894,6 +903,56 @@
     };
     
     console.log('[CONSOLE-API] Console streaming API initialized');
+  })();
+  </script>
+  <!-- Courtney Hosting: Buy Subdomain quick-access button -->
+  <style>
+    #ch-subdomain-btn {
+      position: fixed; bottom: 140px; right: 18px; z-index: 9997;
+      background: hsl(var(--primary, 153 100% 45%)); color: #000;
+      border: none; border-radius: 50px; padding: 10px 16px;
+      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px;
+      cursor: pointer; display: flex; align-items: center; gap: 7px;
+      box-shadow: 0 4px 20px rgba(0,229,153,0.3); text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s; white-space: nowrap;
+    }
+    #ch-subdomain-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(0,229,153,0.5); }
+  </style>
+  <a id="ch-subdomain-btn" href="/subdomains" title="Buy a subdomain under courtneytech.xyz">
+    🌐 Subdomains
+  </a>
+  <script>
+  // Inject "Buy Subdomain" into React sidebar once it renders
+  (function() {
+    const HREF = '/subdomains', ATTR = 'data-ch-sd';
+    function tryInject() {
+      if (document.querySelector('[' + ATTR + ']')) return true;
+      // Try common sidebar nav link selectors
+      const links = document.querySelectorAll('nav a[href], aside a[href], [role="navigation"] a[href]');
+      if (!links.length) return false;
+      const last = links[links.length - 1];
+      const clone = last.cloneNode(true);
+      clone.href = HREF;
+      clone.setAttribute(ATTR, '1');
+      clone.removeAttribute('aria-current');
+      // Update text nodes
+      Array.from(clone.querySelectorAll('*')).filter(el => !el.children.length && el.textContent.trim()).slice(-1).forEach(el => el.textContent = 'Buy Subdomain');
+      // Update SVG icon to globe
+      const svgs = clone.querySelectorAll('svg');
+      svgs.forEach(svg => {
+        svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>';
+      });
+      last.parentNode.appendChild(clone);
+      // Hide FAB once sidebar injection succeeds
+      const fab = document.getElementById('ch-subdomain-btn');
+      if (fab) fab.style.display = 'none';
+      return true;
+    }
+    if (!tryInject()) {
+      const obs = new MutationObserver(() => { if (tryInject()) obs.disconnect(); });
+      obs.observe(document.body, { childList: true, subtree: true });
+      setTimeout(() => obs.disconnect(), 20000);
+    }
   })();
   </script>
   </body>

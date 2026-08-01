@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subdomain Marketplace | Courtney Hosting</title>
+  <meta name="description" content="Get your own subdomain under courtneytech.xyz. Instant DNS activation, DNS management, bot integration, and M-Pesa payments.">
+  <meta property="og:title" content="Subdomain Marketplace | Courtney Hosting">
+  <meta property="og:description" content="Purchase and manage subdomains under courtneytech.xyz — instantly activated, fully managed DNS.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00e599;
+      --primary-rgb: 0,229,153;
+      --bg: #0a0a0f;
+      --bg-card: #111118;
+      --bg-card2: #16161e;
+      --border: #1e1e2e;
+      --text: #e1e1e6;
+      --text-muted: #71717a;
+      --sidebar-w: 240px;
+      --font: 'Inter', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: var(--font); }
+
+    /* ---- Sidebar ---- */
+    .sidebar {
+      width: var(--sidebar-w); min-height: 100vh; background: #0d0d14;
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; z-index: 100; overflow-y: auto;
+    }
+    .sidebar-logo {
+      padding: 18px 16px 14px; display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .logo-mark {
+      width: 34px; height: 34px; background: var(--primary); border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 13px; color: #000; flex-shrink: 0; letter-spacing: -0.5px;
+    }
+    .logo-name { font-weight: 800; font-size: 12px; letter-spacing: 0.04em; line-height: 1.2; }
+    .logo-sub { font-size: 10px; color: var(--text-muted); font-weight: 500; margin-top: 1px; }
+    .sidebar-section { padding: 10px 8px; }
+    .sidebar-label { font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 8px 6px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+      border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all 0.15s; margin-bottom: 1px;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .nav-item.active { background: color-mix(in srgb,var(--primary) 13%,transparent); color: var(--primary); }
+    .nav-icon { width: 15px; height: 15px; flex-shrink: 0; }
+    .sidebar-bottom { margin-top: auto; padding: 10px 8px; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .user-row {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      border-radius: 8px;
+    }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-card2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--primary); flex-shrink: 0; }
+
+    /* ---- Main ---- */
+    .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar {
+      padding: 14px 24px; border-bottom: 1px solid var(--border); display: flex;
+      align-items: center; justify-content: space-between; background: var(--bg);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 17px; font-weight: 700; }
+    .topbar-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .coin-badge {
+      display: flex; align-items: center; gap: 7px; padding: 6px 12px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .coin-dot { width: 7px; height: 7px; background: #fbbf24; border-radius: 50%; }
+    .content { padding: 22px 24px; max-width: 1080px; width: 100%; }
+
+    /* ---- Buttons ---- */
+    .btn {
+      padding: 9px 18px; border-radius: 9px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: #000; }
+    .btn-primary:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--text-muted); background: rgba(255,255,255,0.03); }
+    .btn-danger { background: transparent; color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .btn-danger:hover { background: rgba(239,68,68,0.1); }
+    .btn-sm { padding: 5px 11px; font-size: 12px; border-radius: 7px; }
+    .btn-ghost { background: transparent; border: none; color: var(--text-muted); padding: 4px 8px; }
+    .btn-ghost:hover { color: var(--text); }
+
+    /* ---- Search Hero ---- */
+    .search-hero {
+      background: linear-gradient(135deg, color-mix(in srgb,var(--primary) 7%,var(--bg-card)), var(--bg-card));
+      border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 22px;
+    }
+    .search-hero h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .search-hero p { color: var(--text-muted); font-size: 13px; margin-bottom: 18px; }
+    .search-row { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+    .search-input-wrap {
+      flex: 1; min-width: 220px; display: flex; align-items: center;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 9px;
+      padding: 0 14px; gap: 6px; transition: border-color 0.15s;
+    }
+    .search-input-wrap:focus-within { border-color: var(--primary); }
+    .domain-suffix { color: var(--text-muted); font-size: 13px; white-space: nowrap; }
+    .search-input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-family: var(--font); font-size: 15px; font-weight: 600; padding: 11px 0;
+    }
+    .avail-result { margin-top: 12px; padding: 13px 16px; border-radius: 9px; font-size: 14px; display: none; }
+    .avail-result.show { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .avail-result.available { background: color-mix(in srgb,var(--primary) 9%,transparent); border: 1px solid color-mix(in srgb,var(--primary) 28%,transparent); }
+    .avail-result.taken { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.28); color: #ef4444; }
+    .avail-badge { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .avail-price { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ---- Pricing ---- */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-title { font-size: 15px; font-weight: 700; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 10px; margin-bottom: 24px; }
+    .pricing-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: border-color 0.15s; }
+    .pricing-card:hover { border-color: color-mix(in srgb,var(--primary) 35%,transparent); }
+    .pricing-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; padding: 3px 7px; border-radius: 4px; margin-bottom: 10px; display: inline-block; }
+    .tag-regular { background: rgba(255,255,255,0.07); color: var(--text-muted); }
+    .tag-premium { background: rgba(251,191,36,0.14); color: #fbbf24; }
+    .pricing-price { font-size: 22px; font-weight: 800; margin-bottom: 1px; }
+    .pricing-period { font-size: 11px; color: var(--text-muted); }
+    .pricing-desc { font-size: 12px; color: var(--text-muted); margin-top: 7px; }
+
+    /* ---- Tabs ---- */
+    .tabs { display: flex; gap: 3px; margin-bottom: 18px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 9px; padding: 3px; }
+    .tab { flex: 1; padding: 7px 10px; border-radius: 6px; border: none; background: none; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; text-align: center; }
+    .tab.active { background: color-mix(in srgb,var(--primary) 14%,var(--bg)); color: var(--primary); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ---- Subdomain Cards ---- */
+    .subdomains-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 12px; }
+    .sd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 13px; padding: 16px; transition: border-color 0.15s; }
+    .sd-card:hover { border-color: color-mix(in srgb,var(--primary) 28%,transparent); }
+    .sd-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .sd-name { font-size: 15px; font-weight: 700; color: var(--primary); }
+    .sd-full { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .status-badge { font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .s-active { background: rgba(0,229,153,.14); color: var(--primary); }
+    .s-suspended { background: rgba(239,68,68,.14); color: #ef4444; }
+    .s-expired { background: rgba(113,113,122,.14); color: var(--text-muted); }
+    .sd-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .sd-meta-item { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
+    .sd-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    /* ---- Tables ---- */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { padding: 8px 12px; text-align: left; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); }
+    .data-table td { padding: 9px 12px; font-size: 13px; border-bottom: 1px solid rgba(30,30,46,0.5); }
+    .data-table tr:hover td { background: rgba(255,255,255,0.015); }
+    .dns-type-badge { font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); }
+    .tbl-wrap { overflow-x: auto; }
+
+    /* ---- Modals ---- */
+    .overlay { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.78); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 16px; }
+    .overlay.open { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 22px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-wide { max-width: 680px; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .modal-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 4px; }
+    .modal-close:hover { color: var(--text); }
+
+    /* ---- Forms ---- */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .form-input { width: 100%; padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 13px; outline: none; transition: border-color 0.15s; }
+    .form-input:focus { border-color: var(--primary); }
+    select.form-input { cursor: pointer; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+    .form-check { display: flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; }
+    .form-check input { width: 14px; height: 14px; accent-color: var(--primary); }
+
+    /* ---- Summary box ---- */
+    .summary-box { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 14px; margin: 14px 0; }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 6px; }
+    .summary-row:last-child { margin-bottom: 0; font-weight: 700; }
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+    /* ---- Stats ---- */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 10px; margin-bottom: 20px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 11px; padding: 14px; }
+    .stat-value { font-size: 22px; font-weight: 800; margin-bottom: 2px; }
+    .stat-label { font-size: 11px; color: var(--text-muted); }
+
+    /* ---- Empty / Loading ---- */
+    .empty-state { text-align: center; padding: 48px 20px; }
+    .empty-icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-title { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+    .empty-desc { font-size: 13px; color: var(--text-muted); }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.15); border-top-color: var(--primary); border-radius: 50%; animation: spin .65s linear infinite; }
+    .center-loading { text-align: center; padding: 40px; color: var(--text-muted); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Promo ---- */
+    .promo-row { display: flex; gap: 7px; }
+    .promo-row .form-input { flex: 1; }
+    .promo-msg { font-size: 12px; margin-top: 5px; min-height: 16px; }
+    .promo-ok { color: var(--primary); }
+    .promo-err { color: #ef4444; }
+
+    /* ---- Toast ---- */
+    #toast {
+      position: fixed; bottom: 22px; right: 22px; z-index: 9999;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 16px; font-size: 13px; max-width: 320px;
+      transform: translateY(70px); opacity: 0; transition: all .28s;
+      display: flex; align-items: center; gap: 9px; pointer-events: none;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.ok { border-color: color-mix(in srgb,var(--primary) 45%,transparent); }
+    #toast.err { border-color: rgba(239,68,68,.45); }
+    #toast.warn { border-color: rgba(251,191,36,.45); }
+
+    /* ---- Admin filter bar ---- */
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .filter-bar .form-input { max-width: 240px; }
+
+    /* ---- Pricing admin ---- */
+    .pricing-admin-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; margin-bottom: 7px; gap: 12px;
+    }
+    .premium-tag-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.25);
+      border-radius: 6px; padding: 4px 9px; font-size: 12px;
+    }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform .28s; }
+      .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,.6); }
+      .main { margin-left: 0; }
+      .content { padding: 14px; }
+      .topbar { padding: 12px 14px; }
+      #mob-btn { display: flex !important; }
+      .search-row { flex-direction: column; }
+      .form-row { grid-template-columns: 1fr; }
+      .subdomains-grid { grid-template-columns: 1fr; }
+    }
+    #mob-btn {
+      display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+      width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text); cursor: pointer; align-items: center; justify-content: center;
+    }
+    .mob-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 99; }
+    .mob-backdrop.open { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="mob-backdrop" id="mobBackdrop" onclick="closeSidebar()"></div>
+
+<button id="mob-btn" onclick="openSidebar()" aria-label="Menu">
+  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+</button>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">CH</div>
+    <div>
+      <div class="logo-name">COURTNEY HOSTING</div>
+      <div class="logo-sub">Cloud Platform</div>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Main Menu</div>
+    <a href="/" class="nav-item">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a href="/" class="nav-item">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/></svg>
+      Bot Hosting
+    </a>
+    <a href="/subdomains" class="nav-item active">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+      Buy Subdomain
+    </a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-row">
+      <div class="avatar" id="avatarEl">?</div>
+      <div style="flex:1;min-width:0;">
+        <div id="sidebarName" style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Loading…</div>
+        <div id="sidebarCoins" style="font-size:10px;color:var(--text-muted);">— coins</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Subdomain Marketplace</div>
+      <div class="topbar-sub">Get your own *.courtneytech.xyz — instantly active</div>
+    </div>
+    <div class="coin-badge">
+      <div class="coin-dot"></div>
+      <span id="coinCount">—</span> coins
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- SEARCH HERO -->
+    <div class="search-hero">
+      <h2>Find your perfect subdomain</h2>
+      <p>Instantly activated after payment — manage DNS, connect bots, and renew anytime.</p>
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <input type="text" id="searchInput" class="search-input" placeholder="yourname" autocomplete="off" maxlength="63"
+            oninput="onTyping()" onkeydown="if(event.key==='Enter')doCheck()">
+          <span class="domain-suffix">.courtneytech.xyz</span>
+        </div>
+        <button class="btn btn-primary" id="checkBtn" onclick="doCheck()">Check</button>
+      </div>
+      <div class="avail-result" id="availResult">
+        <div>
+          <div class="avail-badge" id="availMsg"></div>
+          <div class="avail-price" id="availPrice"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="buyBtn" onclick="openBuy()" style="display:none;">Buy Now</button>
+      </div>
+    </div>
+
+    <!-- PRICING -->
+    <div class="section-header">
+      <div class="section-title">Pricing</div>
+    </div>
+    <div class="pricing-grid" id="pricingGrid">
+      <div class="pricing-card">
+        <span class="pricing-tag tag-regular">Regular</span>
+        <div class="pricing-price" style="color:var(--primary)">100 KES</div>
+        <div class="pricing-period">per year</div>
+        <div class="pricing-desc">Any available name — letters, numbers, hyphens</div>
+      </div>
+      <div class="pricing-card">
+        <span class="pricing-tag tag-premium">Premium</span>
+        <div class="pricing-price" style="color:#fbbf24">500+ KES</div>
+        <div class="pricing-period">per year</div>
+        <div class="pricing-desc">Short, brandable, or high-demand names</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" id="tabsRow">
+      <button class="tab active" data-tab="my" onclick="switchTab('my')">My Subdomains</button>
+      <button class="tab" data-tab="payments" onclick="switchTab('payments')">Payments</button>
+      <button class="tab" data-tab="admin" id="adminTab" onclick="switchTab('admin')" style="display:none;">Admin</button>
+    </div>
+
+    <!-- MY SUBDOMAINS -->
+    <div class="tab-panel active" id="tab-my">
+      <div id="myGrid">
+        <div class="center-loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="tab-panel" id="tab-payments">
+      <div id="paymentsGrid">
+        <div class="center-loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="tab-panel" id="tab-admin">
+      <div class="stats-grid" id="adminStatsGrid">
+        <div class="stat-card"><div class="stat-value" id="asStat-active">—</div><div class="stat-label">Active</div></div>
+        <div class="stat-card"><div class="stat-value" id="asStat-premium">—</div><div class="stat-label">Premium</div></div>
+        <div class="stat-card"><div class="stat-value" id="asStat-revenue" style="color:var(--primary)">—</div><div class="stat-label">Revenue (KES)</div></div>
+        <div class="stat-card"><div class="stat-value" id="asStat-expiring" style="color:#fbbf24">—</div><div class="stat-label">Expiring ≤30d</div></div>
+        <div class="stat-card"><div class="stat-value" id="asStat-users">—</div><div class="stat-label">Unique Users</div></div>
+        <div class="stat-card"><div class="stat-value" id="asStat-suspended" style="color:#ef4444">—</div><div class="stat-label">Suspended</div></div>
+      </div>
+      <div class="filter-bar">
+        <input type="text" class="form-input" id="adminSearch" placeholder="Search subdomain or email…" oninput="adminSearchDebounce()">
+        <select class="form-input" id="adminStatusFilter" onchange="loadAdmin()" style="max-width:150px;">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="expired">Expired</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="openPricingAdminModal()">Pricing</button>
+        <button class="btn btn-outline btn-sm" onclick="openPromoModal()">Promo Codes</button>
+      </div>
+      <div id="adminList"><div class="center-loading"><div class="spinner"></div></div></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ===== PURCHASE MODAL ===== -->
+<div class="overlay" id="buyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Purchase Subdomain</div>
+        <div class="modal-sub" id="buyModalDomain">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('buyModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Default IP Address (optional)</label>
+      <input type="text" class="form-input" id="buyIp" placeholder="Leave blank to use default">
+      <div class="form-hint">Points your subdomain to an IP. You can update this later in DNS management.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Promo Code</label>
+      <div class="promo-row">
+        <input type="text" class="form-input" id="promoInput" placeholder="CODE123" oninput="this.value=this.value.toUpperCase()">
+        <button class="btn btn-outline btn-sm" onclick="applyPromo()">Apply</button>
+      </div>
+      <div class="promo-msg" id="promoMsg"></div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-row"><span>Subdomain</span><span id="sumDomain" style="color:var(--primary);font-weight:700;">—</span></div>
+      <div class="summary-row"><span>Price</span><span id="sumKes">—</span></div>
+      <div class="summary-row" id="sumDiscountRow" style="display:none;"><span style="color:var(--primary)">Discount</span><span id="sumDiscount" style="color:var(--primary)">—</span></div>
+      <div class="divider" style="margin:10px 0;"></div>
+      <div class="summary-row"><span>Coins required</span><span id="sumCoins" style="color:#fbbf24;font-weight:800;">—</span></div>
+      <div class="summary-row" style="font-size:12px;"><span style="color:var(--text-muted)">Your coins</span><span id="sumUserCoins" style="color:var(--text-muted);">—</span></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" id="buyConfirmBtn" onclick="confirmBuy()">
+      🚀 Purchase &amp; Activate
+    </button>
+    <div class="form-hint" style="margin-top:8px;text-align:center;">Payment deducted from your coin balance. 10 coins = 1 KES.</div>
+  </div>
+</div>
+
+<!-- ===== DNS MODAL ===== -->
+<div class="overlay" id="dnsModal">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">DNS Records</div>
+        <div class="modal-sub" id="dnsModalSub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('dnsModal')">✕</button>
+    </div>
+    <button class="btn btn-primary btn-sm" style="margin-bottom:12px;" onclick="toggleAddDns()">+ Add Record</button>
+    <div id="addDnsForm" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Type</label>
+          <select class="form-input" id="dnsType" onchange="onDnsType()">
+            <option>A</option><option>AAAA</option><option>CNAME</option>
+            <option>TXT</option><option>MX</option><option>NS</option><option>SRV</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Name</label>
+          <input class="form-input" id="dnsName" placeholder="@ or subdomain.example">
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:10px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Content</label>
+          <input class="form-input" id="dnsContent" placeholder="IP address or value">
+        </div>
+        <div class="form-group" id="dnsPriWrap" style="margin-bottom:0;display:none;">
+          <label class="form-label">Priority</label>
+          <input class="form-input" id="dnsPriority" type="number" placeholder="10">
+        </div>
+      </div>
+      <label class="form-check" style="margin-top:10px;margin-bottom:12px;">
+        <input type="checkbox" id="dnsProxied"> Cloudflare Proxied (orange cloud)
+      </label>
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-primary btn-sm" onclick="submitDns()">Add Record</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleAddDns()">Cancel</button>
+      </div>
+    </div>
+    <div id="dnsRecords"><div class="center-loading"><div class="spinner"></div></div></div>
+  </div>
+</div>
+
+<!-- ===== CONNECT BOT MODAL ===== -->
+<div class="overlay" id="connectModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Connect a Bot</div>
+        <div class="modal-sub" id="connectModalSub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('connectModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Select Bot</label>
+      <select class="form-input" id="connectBotSel"></select>
+    </div>
+    <div class="form-hint" style="margin-bottom:12px;">The bot's server IP will be linked to this subdomain.</div>
+    <button class="btn btn-primary" style="width:100%;" onclick="confirmConnect()">Connect Bot</button>
+  </div>
+</div>
+
+<!-- ===== PRICING ADMIN MODAL ===== -->
+<div class="overlay" id="pricingAdminModal">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title">Manage Pricing</div>
+      <button class="modal-close" onclick="closeModal('pricingAdminModal')">✕</button>
+    </div>
+    <div id="pricingAdminContent"><div class="center-loading"><div class="spinner"></div></div></div>
+  </div>
+</div>
+
+<!-- ===== PROMO CODES MODAL ===== -->
+<div class="overlay" id="promoModal">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <div class="modal-title">Promo Codes</div>
+      <button class="modal-close" onclick="closeModal('promoModal')">✕</button>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:14px;">
+      <div class="section-title" style="margin-bottom:12px;font-size:13px;">Create New Code</div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Code</label>
+          <input class="form-input" id="npCode" placeholder="SAVE50" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Discount Value</label>
+          <input class="form-input" type="number" id="npValue" placeholder="e.g. 50">
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:9px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Type</label>
+          <select class="form-input" id="npType">
+            <option value="percent">Percent (%)</option>
+            <option value="fixed">Fixed (KES)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Expires (optional)</label>
+          <input class="form-input" type="date" id="npUntil">
+        </div>
+      </div>
+      <input class="form-input" id="npDesc" placeholder="Description (optional)" style="margin-top:9px;">
+      <button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="createPromo()">Create Code</button>
+    </div>
+    <div id="promoList"><div class="center-loading"><div class="spinner"></div></div></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ========= STATE =========
+let S = {
+  user: null, isAdmin: false,
+  subdomains: [], coins: 0,
+  avail: null, promoDsc: 0, promoCode: null,
+  dnsSubId: null, connectSubId: null,
+};
+
+// ========= BOOT =========
+(async () => {
+  await loadUser();
+  loadMySubdomains();
+  loadPricing();
+  if (window.innerWidth <= 768) document.getElementById('mob-btn').style.display = 'flex';
+})();
+
+// ========= API =========
+async function api(method, path, body) {
+  const r = await fetch(path, {
+    method, credentials: 'include',
+    headers: body ? { 'Content-Type': 'application/json' } : {},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+  return d;
+}
+
+async function loadUser() {
+  try {
+    const d = await api('GET', '/api/auth/user');
+    S.user = d.user || null;
+    S.isAdmin = d.isAdmin || false;
+    S.coins = d.user?.coins ?? 0;
+    const name = d.user ? (d.user.firstName || d.user.email?.split('@')[0] || 'User') : 'Guest';
+    document.getElementById('avatarEl').textContent = name[0].toUpperCase();
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('sidebarCoins').textContent = `${S.coins.toLocaleString()} coins`;
+    document.getElementById('coinCount').textContent = S.coins.toLocaleString();
+    if (S.isAdmin) { document.getElementById('adminTab').style.display = ''; }
+    if (!d.user) toast('Please log in to purchase subdomains', 'warn');
+  } catch {}
+}
+
+async function loadPricing() {
+  try {
+    const d = await api('GET', '/api/subdomains/pricing');
+    if (!d.pricing?.length) return;
+    document.getElementById('pricingGrid').innerHTML = d.pricing.map(p => `
+      <div class="pricing-card">
+        <span class="pricing-tag ${p.tier === 'premium' ? 'tag-premium' : 'tag-regular'}">${p.tier}</span>
+        <div class="pricing-price" style="color:${p.tier === 'premium' ? '#fbbf24' : 'var(--primary)'}">
+          ${Number(p.kes_per_year).toLocaleString()} KES
+        </div>
+        <div class="pricing-period">per year</div>
+        <div class="pricing-desc">${p.description || ''}</div>
+      </div>`).join('');
+  } catch {}
+}
+
+// ========= AVAILABILITY =========
+let lastCheck = null;
+function onTyping() {
+  S.avail = null;
+  document.getElementById('availResult').className = 'avail-result';
+  document.getElementById('buyBtn').style.display = 'none';
+}
+
+async function doCheck() {
+  const name = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!name) return;
+  const btn = document.getElementById('checkBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const res = document.getElementById('availResult');
+  res.className = 'avail-result';
+  try {
+    const d = await api('POST', '/api/subdomains/check', { name });
+    S.avail = d;
+    if (d.available) {
+      res.className = 'avail-result show available';
+      document.getElementById('availMsg').innerHTML = `✅ <strong>${d.fullDomain}</strong> is available`;
+      document.getElementById('availPrice').textContent = `${d.kes} KES/year (${d.kes * 10} coins) · ${d.tier === 'premium' ? '⭐ Premium' : 'Regular'}`;
+      document.getElementById('buyBtn').style.display = '';
+    } else {
+      res.className = 'avail-result show taken';
+      document.getElementById('availMsg').innerHTML = `❌ <strong>${name}.courtneytech.xyz</strong> is already registered. Please choose another name.`;
+      document.getElementById('availPrice').textContent = '';
+      document.getElementById('buyBtn').style.display = 'none';
+    }
+  } catch (e) {
+    res.className = 'avail-result show taken';
+    document.getElementById('availMsg').textContent = `⚠️ ${e.message}`;
+    document.getElementById('buyBtn').style.display = 'none';
+  } finally { btn.disabled = false; btn.textContent = 'Check'; }
+}
+
+// ========= PURCHASE =========
+function openBuy() {
+  if (!S.avail?.available) return;
+  if (!S.user) { toast('Please log in to purchase', 'warn'); return; }
+  S.promoDsc = 0; S.promoCode = null;
+  document.getElementById('promoInput').value = '';
+  document.getElementById('promoMsg').textContent = '';
+  document.getElementById('promoMsg').className = 'promo-msg';
+  document.getElementById('buyIp').value = '';
+  document.getElementById('sumDiscountRow').style.display = 'none';
+  updateBuySummary();
+  openModal('buyModal');
+}
+
+function updateBuySummary() {
+  if (!S.avail) return;
+  const kes = S.avail.kes;
+  const finalKes = Math.max(0, kes - S.promoDsc);
+  const coins = finalKes * 10;
+  document.getElementById('buyModalDomain').textContent = S.avail.fullDomain;
+  document.getElementById('sumDomain').textContent = S.avail.fullDomain;
+  document.getElementById('sumKes').textContent = `${kes} KES`;
+  document.getElementById('sumCoins').textContent = `${coins.toLocaleString()} coins`;
+  document.getElementById('sumUserCoins').textContent = `${S.coins.toLocaleString()} coins available`;
+  if (S.promoDsc > 0) {
+    document.getElementById('sumDiscountRow').style.display = 'flex';
+    document.getElementById('sumDiscount').textContent = `-${S.promoDsc} KES`;
+  }
+}
+
+async function applyPromo() {
+  const code = document.getElementById('promoInput').value.trim();
+  const msgEl = document.getElementById('promoMsg');
+  if (!code) return;
+  msgEl.textContent = 'Validating…'; msgEl.className = 'promo-msg';
+  try {
+    const d = await api('POST', '/api/subdomains/promo/validate', { code, kes_amount: S.avail?.kes });
+    S.promoDsc = d.discount_kes; S.promoCode = code;
+    msgEl.className = 'promo-msg promo-ok';
+    msgEl.textContent = `✅ ${d.description || 'Code applied'}: −${d.discount_kes} KES`;
+    updateBuySummary();
+  } catch (e) {
+    S.promoDsc = 0; S.promoCode = null;
+    msgEl.className = 'promo-msg promo-err';
+    msgEl.textContent = `❌ ${e.message}`;
+    updateBuySummary();
+  }
+}
+
+async function confirmBuy() {
+  const btn = document.getElementById('buyConfirmBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Processing…';
+  try {
+    const d = await api('POST', '/api/subdomains/purchase', {
+      name: S.avail.name,
+      payment_method: 'wallet',
+      promo_code: S.promoCode,
+      ip_address: document.getElementById('buyIp').value.trim() || undefined,
+    });
+    closeModal('buyModal');
+    toast(`🎉 ${d.message || S.avail.fullDomain + ' is now active!'}`, 'ok');
+    S.avail = null;
+    document.getElementById('availResult').className = 'avail-result';
+    document.getElementById('searchInput').value = '';
+    await loadUser();
+    await loadMySubdomains();
+  } catch (e) {
+    toast(e.message, 'err');
+    btn.disabled = false; btn.textContent = '🚀 Purchase & Activate';
+  }
+}
+
+// ========= MY SUBDOMAINS =========
+async function loadMySubdomains() {
+  const el = document.getElementById('myGrid');
+  el.innerHTML = '<div class="center-loading"><div class="spinner"></div></div>';
+  try {
+    const d = await api('GET', '/api/subdomains');
+    S.subdomains = d.subdomains || [];
+    renderMySubdomains();
+  } catch {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-title">Not logged in</div><div class="empty-desc">Log in to view and manage your subdomains</div></div>';
+  }
+}
+
+function renderMySubdomains() {
+  const el = document.getElementById('myGrid');
+  if (!S.subdomains.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🌐</div>
+      <div class="empty-title">No subdomains yet</div>
+      <div class="empty-desc">Search for a name above and purchase your first subdomain</div>
+    </div>`;
+    return;
+  }
+  const now = Date.now();
+  el.innerHTML = `<div class="subdomains-grid">${S.subdomains.map(sd => {
+    const expiry = new Date(sd.expires_at);
+    const days = Math.ceil((expiry - now) / 864e5);
+    const exClr = days <= 7 ? '#ef4444' : days <= 30 ? '#fbbf24' : 'var(--text-muted)';
+    const sClass = `s-${sd.status}`;
+    return `<div class="sd-card">
+      <div class="sd-header">
+        <div>
+          <div class="sd-name">${sd.subdomain}</div>
+          <div class="sd-full">${sd.full_domain}</div>
+        </div>
+        <span class="status-badge ${sClass}">${sd.status}</span>
+      </div>
+      <div class="sd-meta">
+        <div class="sd-meta-item" style="color:${exClr}">📅 Expires ${expiry.toLocaleDateString()}</div>
+        <div class="sd-meta-item">⭐ ${sd.tier}</div>
+        ${sd.ip_address ? `<div class="sd-meta-item" style="font-family:monospace">🔗 ${sd.ip_address}</div>` : ''}
+      </div>
+      <div class="sd-actions">
+        <button class="btn btn-outline btn-sm" onclick="openDns('${sd.id}','${sd.full_domain}')">DNS</button>
+        <button class="btn btn-outline btn-sm" onclick="openConnect('${sd.id}','${sd.full_domain}')">Connect Bot</button>
+        <button class="btn btn-primary btn-sm" onclick="renewSd('${sd.id}','${sd.subdomain}')">Renew</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSd('${sd.id}','${sd.full_domain}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+async function renewSd(id, name) {
+  if (!confirm(`Renew ${name}.courtneytech.xyz for 1 more year?`)) return;
+  try {
+    const d = await api('POST', `/api/subdomains/renew/${id}`);
+    toast(d.message || 'Renewed!', 'ok');
+    await loadUser(); await loadMySubdomains();
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+async function deleteSd(id, fullDomain) {
+  if (!confirm(`Permanently delete ${fullDomain}?\n\nThis will remove the DNS record and cannot be undone.`)) return;
+  try {
+    await api('DELETE', `/api/subdomains/${id}`);
+    toast(`${fullDomain} deleted`, 'ok');
+    await loadMySubdomains();
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+// ========= DNS =========
+async function openDns(id, fullDomain) {
+  S.dnsSubId = id;
+  document.getElementById('dnsModalSub').textContent = fullDomain;
+  document.getElementById('addDnsForm').style.display = 'none';
+  document.getElementById('dnsRecords').innerHTML = '<div class="center-loading"><div class="spinner"></div></div>';
+  openModal('dnsModal');
+  await refreshDns();
+}
+
+async function refreshDns() {
+  try {
+    const d = await api('GET', `/api/subdomains/${S.dnsSubId}/dns`);
+    const recs = d.records || [];
+    if (!recs.length) {
+      document.getElementById('dnsRecords').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No DNS records</div><div class="empty-desc">Add records to control where your subdomain points</div></div>';
+      return;
+    }
+    document.getElementById('dnsRecords').innerHTML = `<div class="tbl-wrap">
+      <table class="data-table">
+        <thead><tr><th>Type</th><th>Name</th><th>Content</th><th>TTL</th><th>CF</th><th></th></tr></thead>
+        <tbody>${recs.map(r => `<tr>
+          <td><span class="dns-type-badge">${r.type}</span></td>
+          <td style="font-family:monospace;font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.name}">${r.name}</td>
+          <td style="font-family:monospace;font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.content}">${r.content}</td>
+          <td style="font-size:11px;color:var(--text-muted)">${r.ttl === 1 ? 'Auto' : r.ttl + 's'}</td>
+          <td>${r.proxied ? '🟠' : '⚪'}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteDnsRec('${r.id}')">Del</button></td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+  } catch (e) {
+    document.getElementById('dnsRecords').innerHTML = `<div style="color:#ef4444;padding:12px;">${e.message}</div>`;
+  }
+}
+
+function toggleAddDns() {
+  const f = document.getElementById('addDnsForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+function onDnsType() {
+  const t = document.getElementById('dnsType').value;
+  document.getElementById('dnsPriWrap').style.display = ['MX','SRV'].includes(t) ? '' : 'none';
+}
+async function submitDns() {
+  const type = document.getElementById('dnsType').value;
+  const name = document.getElementById('dnsName').value.trim();
+  const content = document.getElementById('dnsContent').value.trim();
+  const priority = document.getElementById('dnsPriority').value;
+  const proxied = document.getElementById('dnsProxied').checked;
+  if (!name || !content) { toast('Name and content are required', 'err'); return; }
+  try {
+    await api('POST', `/api/subdomains/${S.dnsSubId}/dns`, { type, name, content, ttl: 1, priority: priority ? +priority : undefined, proxied });
+    toast('DNS record added', 'ok');
+    document.getElementById('addDnsForm').style.display = 'none';
+    document.getElementById('dnsName').value = '';
+    document.getElementById('dnsContent').value = '';
+    document.getElementById('dnsProxied').checked = false;
+    await refreshDns();
+  } catch (e) { toast(e.message, 'err'); }
+}
+async function deleteDnsRec(rid) {
+  if (!confirm('Delete this DNS record?')) return;
+  try { await api('DELETE', `/api/subdomains/${S.dnsSubId}/dns/${rid}`); toast('Deleted', 'ok'); await refreshDns(); }
+  catch (e) { toast(e.message, 'err'); }
+}
+
+// ========= CONNECT BOT =========
+async function openConnect(id, fullDomain) {
+  S.connectSubId = id;
+  document.getElementById('connectModalSub').textContent = fullDomain;
+  document.getElementById('connectBotSel').innerHTML = '<option>Loading…</option>';
+  openModal('connectModal');
+  try {
+    const d = await api('GET', '/api/bots/my-bots');
+    const bots = d.bots || d || [];
+    if (!bots.length) { document.getElementById('connectBotSel').innerHTML = '<option>No bots available</option>'; return; }
+    document.getElementById('connectBotSel').innerHTML = bots.map(b => `<option value="${b.id}">${b.name} (${b.status})</option>`).join('');
+  } catch {}
+}
+async function confirmConnect() {
+  const botId = document.getElementById('connectBotSel').value;
+  if (!botId) { toast('Select a bot', 'err'); return; }
+  try {
+    await api('POST', `/api/subdomains/${S.connectSubId}/connect-bot`, { bot_id: botId });
+    toast('Bot connected!', 'ok');
+    closeModal('connectModal');
+    await loadMySubdomains();
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+// ========= PAYMENTS =========
+async function loadPayments() {
+  const el = document.getElementById('paymentsGrid');
+  el.innerHTML = '<div class="center-loading"><div class="spinner"></div></div>';
+  try {
+    const d = await api('GET', '/api/subdomains/payment-history');
+    const pays = d.payments || [];
+    if (!pays.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-title">No payments</div><div class="empty-desc">Your subdomain payment history will appear here</div></div>'; return; }
+    el.innerHTML = `<div class="tbl-wrap"><table class="data-table">
+      <thead><tr><th>Date</th><th>Subdomain</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>${pays.map(p => `<tr>
+        <td style="font-size:11px;color:var(--text-muted)">${new Date(p.created_at).toLocaleDateString()}</td>
+        <td style="font-size:13px">${p.subdomain_name}</td>
+        <td style="font-size:12px;text-transform:capitalize">${p.type}</td>
+        <td style="font-size:12px;text-transform:capitalize">${p.method}</td>
+        <td style="font-weight:600">${p.kes_amount} KES</td>
+        <td><span class="status-badge ${p.status === 'completed' ? 's-active' : 's-expired'}">${p.status}</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch { el.innerHTML = '<div style="color:#ef4444;padding:12px">Failed to load history</div>'; }
+}
+
+// ========= ADMIN =========
+async function loadAdminStats() {
+  try {
+    const d = await api('GET', '/api/admin/subdomains/stats');
+    document.getElementById('asStat-active').textContent = d.total_active ?? 0;
+    document.getElementById('asStat-premium').textContent = d.premium_active ?? 0;
+    document.getElementById('asStat-revenue').textContent = Number(d.total_revenue_kes || 0).toLocaleString();
+    document.getElementById('asStat-expiring').textContent = d.expiring_soon ?? 0;
+    document.getElementById('asStat-users').textContent = d.active_users ?? 0;
+    document.getElementById('asStat-suspended').textContent = d.total_suspended ?? 0;
+  } catch {}
+}
+let adminTimer;
+function adminSearchDebounce() { clearTimeout(adminTimer); adminTimer = setTimeout(loadAdmin, 380); }
+async function loadAdmin() {
+  const el = document.getElementById('adminList');
+  el.innerHTML = '<div class="center-loading"><div class="spinner"></div></div>';
+  const q = new URLSearchParams({ page: 1, limit: 50 });
+  const s = document.getElementById('adminSearch')?.value?.trim();
+  const st = document.getElementById('adminStatusFilter')?.value;
+  if (s) q.set('search', s); if (st) q.set('status', st);
+  try {
+    const d = await api('GET', `/api/admin/subdomains?${q}`);
+    const rows = d.subdomains || [];
+    if (!rows.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No results</div></div>'; return; }
+    el.innerHTML = `<div class="tbl-wrap"><table class="data-table">
+      <thead><tr><th>Subdomain</th><th>Owner</th><th>Tier</th><th>Status</th><th>Expires</th><th>Actions</th></tr></thead>
+      <tbody>${rows.map(sd => `<tr>
+        <td style="font-weight:700;color:var(--primary)">${sd.subdomain}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${sd.owner_email}</td>
+        <td style="font-size:12px;text-transform:capitalize">${sd.tier}</td>
+        <td><span class="status-badge s-${sd.status}">${sd.status}</span></td>
+        <td style="font-size:11px;color:var(--text-muted)">${new Date(sd.expires_at).toLocaleDateString()}</td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          ${sd.status === 'active' ? `<button class="btn btn-danger btn-sm" onclick="adminSuspend('${sd.id}')">Suspend</button>` : `<button class="btn btn-outline btn-sm" onclick="adminRestore('${sd.id}')">Restore</button>`}
+          <button class="btn btn-outline btn-sm" onclick="adminForceRenew('${sd.id}')">+1yr</button>
+          <button class="btn btn-danger btn-sm" onclick="adminDelete('${sd.id}','${sd.full_domain}')">Del</button>
+        </td>
+      </tr>`).join('')}</tbody>
+    </table>
+    <div style="font-size:11px;color:var(--text-muted);padding:8px 0">${rows.length} of ${d.total} results</div>
+    </div>`;
+  } catch (e) { el.innerHTML = `<div style="color:#ef4444;padding:12px">${e.message}</div>`; }
+}
+async function adminSuspend(id) {
+  const reason = prompt('Reason (optional):');
+  try { await api('PUT', `/api/admin/subdomains/${id}/suspend`, { reason }); toast('Suspended', 'ok'); loadAdmin(); loadAdminStats(); }
+  catch (e) { toast(e.message, 'err'); }
+}
+async function adminRestore(id) {
+  try { await api('PUT', `/api/admin/subdomains/${id}/restore`); toast('Restored', 'ok'); loadAdmin(); loadAdminStats(); }
+  catch (e) { toast(e.message, 'err'); }
+}
+async function adminForceRenew(id) {
+  if (!confirm('Force-renew for 1 year?')) return;
+  try { await api('PUT', `/api/admin/subdomains/${id}/force-renew`); toast('Renewed', 'ok'); loadAdmin(); }
+  catch (e) { toast(e.message, 'err'); }
+}
+async function adminDelete(id, fd) {
+  if (!confirm(`Delete ${fd}? This removes the DNS record.`)) return;
+  try { await api('DELETE', `/api/admin/subdomains/${id}`); toast('Deleted', 'ok'); loadAdmin(); loadAdminStats(); }
+  catch (e) { toast(e.message, 'err'); }
+}
+
+// ========= PRICING ADMIN =========
+async function openPricingAdminModal() {
+  openModal('pricingAdminModal');
+  const el = document.getElementById('pricingAdminContent');
+  el.innerHTML = '<div class="center-loading"><div class="spinner"></div></div>';
+  try {
+    const d = await api('GET', '/api/admin/subdomains/pricing');
+    const { pricing = [], premium = [] } = d;
+    el.innerHTML = `
+    <div style="margin-bottom:20px;">
+      <div class="section-title" style="margin-bottom:10px;font-size:13px;">Pricing Tiers</div>
+      ${pricing.map(p => `
+        <div class="pricing-admin-row">
+          <div>
+            <div style="font-weight:600;font-size:13px">${p.name} <span style="color:var(--text-muted);font-weight:400;text-transform:capitalize">(${p.tier})</span></div>
+            <div style="font-size:11px;color:var(--text-muted)">${p.description || ''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px">
+            <input type="number" id="px_${p.id}" value="${p.kes_per_year}" style="width:85px;padding:6px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;">
+            <span style="font-size:11px;color:var(--text-muted)">KES/yr</span>
+            <button class="btn btn-primary btn-sm" onclick="saveTier('${p.id}','${p.tier}','${p.name}','${(p.description||'').replace(/'/g,"\\'")}')">Save</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div>
+      <div class="section-title" style="margin-bottom:10px;font-size:13px;">Premium Names</div>
+      <div style="display:flex;gap:7px;margin-bottom:10px;">
+        <input class="form-input" id="npmName" placeholder="e.g. shop" style="flex:1">
+        <input class="form-input" type="number" id="npmKes" placeholder="KES" style="width:90px">
+        <button class="btn btn-primary btn-sm" onclick="addPremium()">Add</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${premium.map(p => `<div class="premium-tag-pill">
+          <span style="font-weight:700">${p.name}</span>
+          <span style="color:var(--text-muted);font-size:11px">${p.kes_per_year} KES</span>
+          <button onclick="removePremium('${p.name}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:0 0 0 2px;line-height:1">×</button>
+        </div>`).join('') || '<span style="color:var(--text-muted);font-size:12px">No premium names set</span>'}
+      </div>
+    </div>`;
+  } catch (e) { el.innerHTML = `<div style="color:#ef4444">${e.message}</div>`; }
+}
+async function saveTier(id, tier, name, desc) {
+  const kes = +document.getElementById(`px_${id}`).value;
+  try {
+    await api('PUT', `/api/admin/subdomains/pricing/${id}`, { kes_per_year: kes, coins_per_year: kes * 10, description: desc, tier, name });
+    toast('Pricing updated', 'ok'); loadPricing();
+  } catch (e) { toast(e.message, 'err'); }
+}
+async function addPremium() {
+  const name = document.getElementById('npmName').value.trim().toLowerCase();
+  const kes = +document.getElementById('npmKes').value;
+  if (!name || !kes) { toast('Name and price required', 'err'); return; }
+  try { await api('POST', '/api/admin/subdomains/premium', { name, kes_per_year: kes }); toast(`${name} added`, 'ok'); openPricingAdminModal(); }
+  catch (e) { toast(e.message, 'err'); }
+}
+async function removePremium(name) {
+  if (!confirm(`Remove "${name}" from premium?`)) return;
+  try { await api('DELETE', `/api/admin/subdomains/premium/${name}`); toast('Removed', 'ok'); openPricingAdminModal(); }
+  catch (e) { toast(e.message, 'err'); }
+}
+
+// ========= PROMO CODES =========
+async function openPromoModal() {
+  openModal('promoModal'); await refreshPromos();
+}
+async function refreshPromos() {
+  const el = document.getElementById('promoList');
+  el.innerHTML = '<div class="center-loading"><div class="spinner"></div></div>';
+  try {
+    const d = await api('GET', '/api/admin/subdomains/pricing');
+    const promos = d.promo_codes || [];
+    if (!promos.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">No promo codes yet</div>'; return; }
+    el.innerHTML = promos.map(p => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">
+        <div>
+          <div style="font-weight:700;font-size:13px;font-family:monospace;color:var(--primary)">${p.code}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${p.discount_type === 'percent' ? p.discount_value + '%' : p.discount_value + ' KES'} off · ${p.used_count} uses${p.max_uses ? ' / ' + p.max_uses : ''} ${!p.active ? '· <span style="color:#ef4444">inactive</span>' : ''}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deletePromo('${p.id}')">Delete</button>
+      </div>`).join('');
+  } catch {}
+}
+async function createPromo() {
+  const code = document.getElementById('npCode').value.trim();
+  const value = +document.getElementById('npValue').value;
+  const type = document.getElementById('npType').value;
+  const until = document.getElementById('npUntil').value;
+  const desc = document.getElementById('npDesc').value.trim();
+  if (!code || !value) { toast('Code and discount value required', 'err'); return; }
+  try {
+    await api('POST', '/api/admin/subdomains/promo-codes', { code, description: desc, discount_type: type, discount_value: value, valid_until: until || undefined });
+    toast('Promo created', 'ok');
+    ['npCode','npValue','npDesc','npUntil'].forEach(id => document.getElementById(id).value = '');
+    await refreshPromos();
+  } catch (e) { toast(e.message, 'err'); }
+}
+async function deletePromo(id) {
+  if (!confirm('Delete this promo code?')) return;
+  try { await api('DELETE', `/api/admin/subdomains/promo-codes/${id}`); toast('Deleted', 'ok'); await refreshPromos(); }
+  catch {}
+}
+
+// ========= TABS =========
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${name}`)?.classList.add('active');
+  if (name === 'payments') loadPayments();
+  if (name === 'admin') { loadAdminStats(); loadAdmin(); }
+}
+
+// ========= MODALS =========
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(el => el.addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+}));
+
+// ========= SIDEBAR =========
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('mobBackdrop').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('mobBackdrop').classList.remove('open'); }
+
+// ========= TOAST =========
+let toastTimer;
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  const icons = { ok: '✅', err: '❌', warn: '⚠️', info: 'ℹ️' };
+  el.className = `show ${type}`;
+  el.innerHTML = `${icons[type] || ''} ${msg}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3600);
+}
+</script>
+</body>
+</html>
