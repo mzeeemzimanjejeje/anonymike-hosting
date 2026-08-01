@@ -62271,22 +62271,21 @@ var users_default = router4;
 // src/routes/payments.ts
 var import_express5 = __toESM(require_express2(), 1);
 var router5 = (0, import_express5.Router)();
-var PAYFLOW_API_KEY = process.env.PAYFLOW_API_KEY;
-var PAYFLOW_API_SECRET = process.env.PAYFLOW_API_SECRET;
-var PAYFLOW_ACCOUNT_ID = parseInt(process.env.PAYFLOW_ACCOUNT_ID ?? "1", 10);
-var PAYFLOW_BASE = "https://payflow.top/api/v2";
+// ---- Courtney Tech Payment Gateway (courtneytech.xyz) ----
+var CT_API_KEY = process.env.COURTNEYTECH_API_KEY;
+var CT_BASE = "https://courtneytech.xyz/api";
 var COIN_PACKAGES = [
   { id: "starter", name: "Starter", coins: 100, kesAmount: 50, popular: false, perCoin: 0.5 },
   { id: "popular", name: "Popular", coins: 300, kesAmount: 100, popular: true, perCoin: 0.33 },
   { id: "value", name: "Value", coins: 700, kesAmount: 200, popular: false, perCoin: 0.29 },
   { id: "mega", name: "Mega", coins: 2e3, kesAmount: 500, popular: false, perCoin: 0.25 }
 ];
-async function payflowPost(path2, body) {
-  const res = await fetch(`${PAYFLOW_BASE}${path2}`, {
+async function ctPost(path2, body) {
+  if (!CT_API_KEY) throw new Error("COURTNEYTECH_API_KEY is not configured");
+  const res = await fetch(`${CT_BASE}${path2}`, {
     method: "POST",
     headers: {
-      "X-API-Key": PAYFLOW_API_KEY,
-      "X-API-Secret": PAYFLOW_API_SECRET,
+      "Authorization": `Bearer ${CT_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(body)
@@ -62318,21 +62317,28 @@ router5.post("/payments/initiate", async (req, res) => {
     res.status(400).json({ error: "Enter a valid Kenyan phone: 07XXXXXXXX, 01XXXXXXXX, 254XXXXXXXXX or +254XXXXXXXXX" });
     return;
   }
-  const reference = `AMT-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-  const pfResult = await payflowPost("/stkpush.php", {
-    payment_account_id: PAYFLOW_ACCOUNT_ID,
-    phone: cleanPhone,
-    amount: pkg.kesAmount,
-    reference,
-    description: `COURTNEY HOSTING ${pkg.coins} Coins`
-  });
+  const reference = `CT-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+  let pfResult;
+  try {
+    pfResult = await ctPost("/mpesa/stkpush", {
+      phone: cleanPhone,
+      amount: pkg.kesAmount,
+      reference,
+      description: `COURTNEY HOSTING ${pkg.coins} Coins`
+    });
+  } catch (gatewayErr) {
+    logger.error({ err: gatewayErr }, "Payment gateway error");
+    res.status(502).json({ error: gatewayErr.message ?? "Payment gateway unavailable" });
+    return;
+  }
   if (!pfResult.success) {
     res.status(502).json({ error: pfResult.message ?? "Payment gateway error" });
     return;
   }
+  const checkoutId = pfResult.checkoutRequestId ?? pfResult.checkout_request_id;
   const [txn] = await db.insert(transactionsTable).values({
     userId: req.user.id,
-    checkoutRequestId: pfResult.checkout_request_id,
+    checkoutRequestId: checkoutId,
     phone: cleanPhone,
     kesAmount: pkg.kesAmount,
     coinsAmount: pkg.coins,
@@ -62343,7 +62349,7 @@ router5.post("/payments/initiate", async (req, res) => {
   res.json({
     success: true,
     transactionId: txn.id,
-    checkoutRequestId: pfResult.checkout_request_id,
+    checkoutRequestId: checkoutId,
     message: "STK Push sent to your phone. Enter your M-Pesa PIN to complete payment."
   });
 });
@@ -62374,9 +62380,10 @@ router5.post("/payments/check-status", async (req, res) => {
     res.json({ status: "pending" });
     return;
   }
-  const pfStatus = await payflowPost("/status.php", {
-    checkout_request_id: txn.checkoutRequestId
-  });
+  let pfStatus;
+  try {
+    pfStatus = await ctPost("/mpesa/status", { checkoutRequestId: txn.checkoutRequestId });
+  } catch { res.json({ status: "pending" }); return; }
   if (!pfStatus.success) {
     res.json({ status: "pending" });
     return;
