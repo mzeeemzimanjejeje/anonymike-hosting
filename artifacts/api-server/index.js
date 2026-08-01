@@ -1,4 +1,4 @@
-// ANONYMIKETECH — Entry point
+// COURTNEY HOSTING — Entry point
 // Supports both Replit and VPS/Pterodactyl deployments.
 // Requires Node.js 20+
 //

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-#  ANONYMIKETECH — Full self-contained startup
+#  COURTNEY HOSTING — Full self-contained startup
 #  Pterodactyl startup command: bash artifacts/api-server/start.sh
 #  Does everything: pull → deps → schema → start
 #
@@ -56,5 +56,5 @@ async function applySchema(url, label) {
 SCHEMA
 
 # ── Start server ──────────────────────────────────────────────
-echo "[4/4] Starting ANONYMIKETECH server..."
+echo "[4/4] Starting Courtney Hosting server..."
 node index.js

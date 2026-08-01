@@ -63457,13 +63457,18 @@ var port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
-app_default.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
-  }
-  logger.info({ port }, "Server listening");
-});
+// Skip listen when running as a Vercel serverless function — Vercel calls the
+// exported handler directly; listening on a port would be a no-op and waste a slot.
+if (!process.env.VERCEL) {
+  app_default.listen(port, (err) => {
+    if (err) {
+      logger.error({ err }, "Error listening on port");
+      process.exit(1);
+    }
+    logger.info({ port }, "Server listening");
+  });
+}
+export default app_default;
 /*! Bundled license information:
 
 depd/index.js:
