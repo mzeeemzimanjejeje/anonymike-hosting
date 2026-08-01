@@ -62272,8 +62272,9 @@ var users_default = router4;
 var import_express5 = __toESM(require_express2(), 1);
 var router5 = (0, import_express5.Router)();
 // ---- Courtney Tech Payment Gateway (courtneytech.xyz) ----
-// Auth: single Bearer token — Authorization: Bearer <COURTNEYTECH_API_KEY>
 var CT_API_KEY = process.env.COURTNEYTECH_API_KEY;
+var CT_API_SECRET = process.env.COURTNEYTECH_API_SECRET;
+var CT_ACCOUNT_ID = parseInt(process.env.COURTNEYTECH_ACCOUNT_ID ?? "1", 10);
 var CT_BASE = "https://courtneytech.xyz/api";
 var COIN_PACKAGES = [
   { id: "starter", name: "Starter", coins: 100, kesAmount: 50, popular: false, perCoin: 0.5 },
@@ -62282,11 +62283,12 @@ var COIN_PACKAGES = [
   { id: "mega", name: "Mega", coins: 2e3, kesAmount: 500, popular: false, perCoin: 0.25 }
 ];
 async function ctPost(path2, body) {
-  if (!CT_API_KEY) throw new Error("COURTNEYTECH_API_KEY is not configured");
+  if (!CT_API_KEY || !CT_API_SECRET) throw new Error("COURTNEYTECH_API_KEY / COURTNEYTECH_API_SECRET not configured");
   const res = await fetch(`${CT_BASE}${path2}`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${CT_API_KEY}`,
+      "X-API-Key": CT_API_KEY,
+      "X-API-Secret": CT_API_SECRET,
       "Content-Type": "application/json"
     },
     body: JSON.stringify(body)
@@ -62322,6 +62324,7 @@ router5.post("/payments/initiate", async (req, res) => {
   let pfResult;
   try {
     pfResult = await ctPost("/mpesa/stkpush", {
+      payment_account_id: CT_ACCOUNT_ID,
       phone: cleanPhone,
       amount: pkg.kesAmount,
       accountReference: reference,
