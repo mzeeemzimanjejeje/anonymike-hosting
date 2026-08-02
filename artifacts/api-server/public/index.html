@@ -12,7 +12,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Courtney Hosting">
     <meta name="twitter:description" content="WhatsApp Bot Hosting &amp; Subdomain Platform">
-    <link rel="canonical" href="https://courtneytech.xyz">
+    <link rel="canonical" href="https://hosts.courtneytech.xyz">
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -24,20 +24,33 @@
     <meta name="apple-mobile-web-app-title" content="Courtney Hosting" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/index-CBtdmwt8.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Do4ZnO8S.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- React app assets (only loaded when not on landing page) -->
+    <script>
+      // Path-based routing: landing page at /, React app everywhere else
+      window.__IS_LANDING__ = window.location.pathname === '/';
+      if (!window.__IS_LANDING__) {
+        document.write('<script type="module" crossorigin src="/assets/index-CBtdmwt8.js"><\/script>');
+        document.write('<link rel="stylesheet" crossorigin href="/assets/index-Do4ZnO8S.css">');
+      }
+    </script>
+
     <style>
-      /* Fix: prevent GPU rendering artifacts (matrix/glitch effect) on mobile */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      /* ── Base ── */
+      body {
+        background: #060606;
+        color: #e4e4e7;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── React app fixes (only active when NOT on landing) ── */
       .mix-blend-screen { mix-blend-mode: normal !important; }
-
-      /* Fix: prevent blank-page flash while maintenance status loads */
       #root:empty { display: none; }
-
-      /* Fix: stop Framer Motion duplicate/ghost text on slow networks & mobile */
       .font-display { will-change: auto !important; }
-
-      /* Fix: stop tech-gradient-text from doubling via pseudo-element animation */
       .tech-gradient-text::before,
       .tech-gradient-text::after { display: none !important; content: none !important; }
       .tech-gradient-text {
@@ -45,1006 +58,575 @@
         -webkit-animation: none !important;
         transform: none !important;
         backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
+      }
+      [data-ch-sd] { color: inherit !important; }
+
+      /* ── Landing page ── */
+      #landing {
+        display: none;
+        min-height: 100vh;
+        flex-direction: column;
+        overflow-x: hidden;
       }
 
-      /* Domains sidebar link styling */
-      [data-ch-sd] { color: inherit !important; }
-      [data-ch-sd]:hover { opacity: 0.8; }
+      /* Nav */
+      .ln-nav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 20px; height: 58px;
+        background: rgba(6,6,6,0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+      }
+      .ln-logo {
+        display: flex; align-items: center; gap: 10px;
+        font-weight: 800; font-size: 16px; color: #fff; text-decoration: none;
+      }
+      .ln-logo-icon {
+        width: 30px; height: 30px; border-radius: 8px;
+        background: linear-gradient(135deg, #00e599 0%, #00b377 100%);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px;
+      }
+      .ln-nav-links { display: flex; align-items: center; gap: 6px; }
+      .ln-nav-link {
+        padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+        color: #a1a1aa; text-decoration: none; transition: color 0.15s, background 0.15s;
+      }
+      .ln-nav-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
+      .ln-btn-primary {
+        background: #00e599; color: #000; border: none;
+        padding: 9px 18px; border-radius: 9px; font-size: 13px; font-weight: 700;
+        cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        transition: background 0.15s, transform 0.1s;
+      }
+      .ln-btn-primary:hover { background: #00ff9d; transform: translateY(-1px); }
+
+      /* Ticker */
+      .ln-ticker {
+        background: rgba(255,255,255,0.03);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        overflow: hidden; height: 36px; display: flex; align-items: center;
+        margin-top: 58px;
+      }
+      .ln-ticker-track {
+        display: flex; align-items: center; gap: 0;
+        animation: ticker 28s linear infinite;
+        white-space: nowrap;
+      }
+      .ln-ticker-item {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 0 28px; font-size: 12px; font-weight: 500; color: #71717a;
+        border-right: 1px solid rgba(255,255,255,0.06);
+      }
+      .ln-ticker-item span { font-size: 10px; color: #3f3f46; font-weight: 400; }
+      @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+      /* Hero */
+      .ln-hero {
+        display: flex; flex-direction: column; align-items: center;
+        text-align: center; padding: 72px 20px 56px;
+        position: relative;
+      }
+      .ln-hero::before {
+        content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+        width: 600px; height: 400px;
+        background: radial-gradient(ellipse at center, rgba(0,229,153,0.12) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .ln-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(0,229,153,0.1); border: 1px solid rgba(0,229,153,0.25);
+        color: #00e599; border-radius: 50px; padding: 5px 12px;
+        font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+        margin-bottom: 24px;
+        animation: fadeUp 0.6s ease both;
+      }
+      .ln-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #00e599; animation: pulse 2s infinite; }
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+      .ln-h1 {
+        font-size: clamp(36px, 7vw, 68px);
+        font-weight: 900; line-height: 1.07;
+        letter-spacing: -0.03em; color: #fff;
+        margin-bottom: 10px;
+        animation: fadeUp 0.6s 0.1s ease both;
+      }
+      .ln-h1-accent {
+        display: block;
+        background: linear-gradient(135deg, #00e599 0%, #00b8d9 50%, #00e599 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shimmer 4s linear infinite, fadeUp 0.6s 0.15s ease both;
+      }
+      @keyframes shimmer { 0%{background-position:0% center} 100%{background-position:200% center} }
+      .ln-sub {
+        font-size: clamp(15px, 2.5vw, 18px); color: #71717a; max-width: 520px;
+        line-height: 1.65; margin-bottom: 36px;
+        animation: fadeUp 0.6s 0.2s ease both;
+      }
+      .ln-ctas {
+        display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+        margin-bottom: 20px;
+        animation: fadeUp 0.6s 0.25s ease both;
+      }
+      .ln-btn-big {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 13px 26px; border-radius: 12px; font-size: 15px; font-weight: 700;
+        cursor: pointer; text-decoration: none; transition: all 0.15s;
+        border: none;
+      }
+      .ln-btn-big.primary { background: #00e599; color: #000; }
+      .ln-btn-big.primary:hover { background: #00ff9d; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,229,153,0.35); }
+      .ln-btn-big.secondary { background: rgba(255,255,255,0.06); color: #e4e4e7; border: 1px solid rgba(255,255,255,0.1); }
+      .ln-btn-big.secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+      .ln-trust {
+        display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center;
+        font-size: 12px; color: #52525b;
+        animation: fadeUp 0.6s 0.3s ease both;
+      }
+      .ln-trust-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 50px; padding: 4px 10px; font-size: 11px; color: #71717a;
+      }
+      @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+      /* Terminal */
+      .ln-terminal-wrap {
+        padding: 0 20px 64px; max-width: 680px; margin: 0 auto; width: 100%;
+        animation: fadeUp 0.7s 0.35s ease both;
+      }
+      .ln-terminal {
+        background: #111; border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px; overflow: hidden;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,229,153,0.06);
+      }
+      .ln-terminal-bar {
+        background: #1a1a1a; padding: 12px 16px;
+        display: flex; align-items: center; gap: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+      }
+      .ln-dot { width: 11px; height: 11px; border-radius: 50%; }
+      .ln-dot.r { background: #ff5f57; }
+      .ln-dot.y { background: #febc2e; }
+      .ln-dot.g { background: #28c840; }
+      .ln-terminal-title { font-size: 12px; color: #52525b; margin-left: 6px; font-weight: 500; }
+      .ln-terminal-body { padding: 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.8; }
+      .ln-cmd { color: #71717a; }
+      .ln-cmd::before { content: '$ '; color: #00e599; }
+      .ln-out { color: #a1a1aa; }
+      .ln-ok { color: #00e599; }
+      .ln-cursor { display: inline-block; width: 8px; height: 14px; background: #00e599; animation: blink 1s infinite; vertical-align: middle; }
+      @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+      /* Bot cards */
+      .ln-section {
+        padding: 0 20px 72px; max-width: 1100px; margin: 0 auto; width: 100%;
+      }
+      .ln-section-label {
+        font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #00e599;
+        text-transform: uppercase; margin-bottom: 12px;
+      }
+      .ln-section-title {
+        font-size: clamp(26px, 4vw, 40px); font-weight: 800; color: #fff;
+        letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.15;
+      }
+      .ln-section-sub { font-size: 15px; color: #71717a; margin-bottom: 40px; max-width: 480px; }
+      .ln-bots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+        gap: 16px;
+      }
+      .ln-bot-card {
+        background: #0e0e0e; border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px; padding: 22px; cursor: pointer;
+        transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        text-decoration: none; display: flex; flex-direction: column; gap: 14px;
+      }
+      .ln-bot-card:hover {
+        border-color: rgba(0,229,153,0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,229,153,0.1);
+      }
+      .ln-bot-header { display: flex; align-items: center; gap: 12px; }
+      .ln-bot-avatar {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: linear-gradient(135deg, #00e599 0%, #00b8d9 100%);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; flex-shrink: 0;
+      }
+      .ln-bot-name { font-size: 16px; font-weight: 700; color: #fff; }
+      .ln-bot-tag {
+        display: inline-flex; align-items: center;
+        background: rgba(0,229,153,0.12); color: #00e599;
+        border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600;
+        margin-top: 3px;
+      }
+      .ln-bot-desc { font-size: 13px; color: #71717a; line-height: 1.6; }
+      .ln-bot-features { display: flex; flex-wrap: wrap; gap: 6px; }
+      .ln-bot-feat {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 6px; padding: 4px 9px; font-size: 11px; color: #a1a1aa;
+      }
+      .ln-bot-feat::before { content: '✓'; color: #00e599; font-size: 10px; }
+      .ln-bot-footer {
+        display: flex; align-items: center; justify-content: space-between;
+        padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);
+      }
+      .ln-bot-price { font-size: 14px; font-weight: 700; color: #fff; }
+      .ln-bot-price span { font-size: 11px; color: #52525b; font-weight: 400; }
+      .ln-deploy-btn {
+        background: #00e599; color: #000; border: none;
+        padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+        cursor: pointer; transition: background 0.15s;
+        display: inline-flex; align-items: center; gap: 5px;
+      }
+      .ln-deploy-btn:hover { background: #00ff9d; }
+
+      /* Features row */
+      .ln-features { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%,280px),1fr)); gap: 16px; margin-bottom: 72px; }
+      .ln-feat-card {
+        background: #0e0e0e; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 24px;
+      }
+      .ln-feat-icon {
+        width: 40px; height: 40px; border-radius: 10px; margin-bottom: 16px;
+        background: rgba(0,229,153,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px;
+      }
+      .ln-feat-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+      .ln-feat-desc { font-size: 13px; color: #71717a; line-height: 1.6; }
+
+      /* Footer */
+      .ln-footer {
+        border-top: 1px solid rgba(255,255,255,0.06);
+        padding: 32px 20px;
+        display: flex; flex-wrap: wrap; gap: 12px;
+        align-items: center; justify-content: space-between;
+        font-size: 12px; color: #52525b;
+        max-width: 1100px; margin: 0 auto; width: 100%;
+      }
+
+      /* Mobile */
+      @media (max-width: 480px) {
+        .ln-nav-links .ln-nav-link:not(:last-child) { display: none; }
+        .ln-hero { padding: 48px 16px 40px; }
+        .ln-terminal-wrap { padding: 0 16px 48px; }
+        .ln-section { padding: 0 16px 48px; }
+      }
     </style>
   </head>
   <body>
+    <!-- React app root (used for /bots, /dashboard, etc.) -->
     <div id="root"></div>
-  <!-- Share Coins Feature (v2) -->
-  <style>
-    #amt-fab {
-      position: fixed; bottom: 84px; right: 18px; z-index: 9999;
-      background: hsl(var(--primary)); color: #0a0a0a; border: none; border-radius: 50px;
-      padding: 12px 20px; font-family: 'Inter', sans-serif; font-weight: 700;
-      font-size: 14px; cursor: pointer; display: none; align-items: center;
-      gap: 8px; box-shadow: 0 4px 24px rgba(var(--primary-rgb),0.35);
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    #amt-fab:hover { transform: scale(1.05); box-shadow: 0 6px 32px rgba(var(--primary-rgb),0.5); }
-    #amt-overlay {
-      display: none; position: fixed; inset: 0; z-index: 10000;
-      background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
-      align-items: flex-end; justify-content: center;
-    }
-    #amt-overlay.open { display: flex; }
-    #amt-modal {
-      background: #111; border: 1px solid #1e1e1e; border-radius: 24px 24px 0 0;
-      padding: 24px 20px 32px; width: 100%; max-width: 480px;
-      font-family: 'Inter', sans-serif; color: #fff; max-height: 92vh; overflow-y: auto;
-    }
-    .amt-drag { width: 40px; height: 4px; background: #333; border-radius: 2px; margin: 0 auto 20px; }
-    .amt-title { font-size: 18px; font-weight: 700; margin: 0 0 2px; }
-    .amt-sub { font-size: 13px; color: #777; margin: 0 0 18px; }
-    .amt-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-    .amt-tab {
-      flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #2a2a2a;
-      background: transparent; color: #888; font-family: 'Inter', sans-serif;
-      font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    }
-    .amt-tab.active { background: color-mix(in srgb,hsl(var(--primary)) 12%,transparent); border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
-    .amt-panel { display: none; }
-    .amt-panel.active { display: block; }
-    /* Currency toggle */
-    .amt-currency-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .amt-currency-row label { font-size: 12px; font-weight: 600; color: #aaa; flex: 1; }
-    .amt-toggle { display: flex; background: #1a1a1a; border-radius: 8px; border: 1px solid #2a2a2a; overflow: hidden; }
-    .amt-toggle button {
-      padding: 5px 12px; border: none; background: transparent; color: #777;
-      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .amt-toggle button.active { background: hsl(var(--primary)); color: #0a0a0a; }
-    .amt-hint { font-size: 11px; color: #555; margin: -10px 0 12px; }
-    .amt-input {
-      width: 100%; box-sizing: border-box; background: #1a1a1a;
-      border: 1px solid #2a2a2a; border-radius: 12px; color: #fff;
-      font-family: 'Inter', sans-serif; font-size: 15px; padding: 13px 14px;
-      margin-bottom: 14px; outline: none; transition: border-color 0.2s;
-    }
-    .amt-input:focus { border-color: hsl(var(--primary)); }
-    .amt-balance { font-size: 12px; color: #666; margin-bottom: 16px; }
-    .amt-balance span { color: hsl(var(--primary)); font-weight: 700; }
-    .amt-btn {
-      width: 100%; background: hsl(var(--primary)); color: #0a0a0a; border: none;
-      border-radius: 12px; padding: 14px; font-family: 'Inter', sans-serif;
-      font-weight: 700; font-size: 15px; cursor: pointer; transition: opacity 0.2s;
-    }
-    .amt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .amt-btn-ghost {
-      width: 100%; background: transparent; color: #555; border: none;
-      padding: 10px; font-family: 'Inter', sans-serif; font-size: 14px;
-      cursor: pointer; margin-top: 4px;
-    }
-    .amt-msg { margin-top: 10px; font-size: 13px; text-align: center; min-height: 18px; }
-    .amt-msg.ok { color: hsl(var(--primary)); }
-    .amt-msg.err { color: #ff4d4d; }
-    /* Link box */
-    .amt-link-box {
-      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px;
-      padding: 12px 14px; display: flex; align-items: center; gap: 10px;
-      margin: 14px 0;
-    }
-    .amt-link-box span { flex: 1; font-size: 12px; color: #aaa; word-break: break-all; }
-    .amt-copy-btn {
-      background: hsl(var(--primary)); color: #0a0a0a; border: none; border-radius: 8px;
-      padding: 7px 14px; font-family: 'Inter', sans-serif; font-weight: 700;
-      font-size: 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
-    }
-    .amt-link-meta { font-size: 11px; color: #555; text-align: center; }
-    /* Toast */
-    #amt-toast {
-      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px);
-      z-index: 20000; background: #111; border: 1px solid hsl(var(--primary)); border-radius: 12px;
-      padding: 12px 20px; font-family: 'Inter', sans-serif; font-size: 14px; color: #fff;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5); transition: transform 0.3s ease; white-space: nowrap;
-    }
-    #amt-toast.show { transform: translateX(-50%) translateY(0); }
-    #amt-toast.err-toast { border-color: #ff4d4d; }
-    /* Claim modal */
-    #amt-claim-overlay {
-      display: none; position: fixed; inset: 0; z-index: 10001;
-      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-      align-items: center; justify-content: center;
-    }
-    #amt-claim-overlay.open { display: flex; }
-    #amt-claim-box {
-      background: #111; border: 1px solid #2a2a2a; border-radius: 24px;
-      padding: 32px 24px; width: 88%; max-width: 360px; text-align: center;
-      font-family: 'Inter', sans-serif; color: #fff;
-    }
-    #amt-claim-box .amt-claim-icon { font-size: 48px; margin-bottom: 12px; }
-    #amt-claim-box h3 { margin: 0 0 8px; font-size: 20px; font-weight: 700; }
-    #amt-claim-box p { margin: 0 0 20px; font-size: 14px; color: #888; }
-  </style>
 
-  <!-- FAB -->
-  <button id="amt-fab" aria-label="Share Coins">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-    Share Coins
-  </button>
+    <!-- ===== LANDING PAGE (only shown at "/") ===== -->
+    <div id="landing">
 
-  <!-- Toast -->
-  <div id="amt-toast"></div>
+      <!-- Nav -->
+      <nav class="ln-nav">
+        <a href="/" class="ln-logo">
+          <div class="ln-logo-icon">🤖</div>
+          Courtney Hosting
+        </a>
+        <div class="ln-nav-links">
+          <a href="/pricing" class="ln-nav-link">Pricing</a>
+          <a href="/subdomains" class="ln-nav-link">Domains</a>
+          <a href="/bots" class="ln-nav-link">Browse Bots</a>
+          <a href="/dashboard" class="ln-btn-primary">Get Started Free</a>
+        </div>
+      </nav>
 
-  <!-- Claim modal (for ?pendingClaim=) -->
-  <div id="amt-claim-overlay">
-    <div id="amt-claim-box">
-      <div class="amt-claim-icon">🎁</div>
-      <h3 id="amt-claim-title">Someone sent you coins!</h3>
-      <p id="amt-claim-desc">Login to your account to claim them.</p>
-      <button class="amt-btn" onclick="document.getElementById('amt-claim-overlay').classList.remove('open')">Got it</button>
-    </div>
-  </div>
-
-  <!-- Main modal -->
-  <div id="amt-overlay">
-    <div id="amt-modal">
-      <div class="amt-drag"></div>
-      <p class="amt-title">🪙 Share Coins</p>
-      <p class="amt-sub">Balance: <span id="amt-bal" style="color:hsl(var(--primary));font-weight:700">—</span> coins</p>
-
-      <div class="amt-tabs">
-        <button class="amt-tab active" data-tab="direct">Send Directly</button>
-        <button class="amt-tab" data-tab="link">Share Link</button>
+      <!-- Integration ticker -->
+      <div class="ln-ticker">
+        <div class="ln-ticker-track" id="ticker-track">
+          <div class="ln-ticker-item">🤖 WhatsApp <span>Bots</span></div>
+          <div class="ln-ticker-item">☁️ Cloudflare <span>DNS</span></div>
+          <div class="ln-ticker-item">💳 M-Pesa <span>Payments</span></div>
+          <div class="ln-ticker-item">🌐 courtneytech.xyz <span>Subdomains</span></div>
+          <div class="ln-ticker-item">🔐 GitHub OAuth <span>Auth</span></div>
+          <div class="ln-ticker-item">⚡ Pterodactyl <span>Panel</span></div>
+          <div class="ln-ticker-item">📧 Resend <span>Email</span></div>
+          <div class="ln-ticker-item">🐘 PostgreSQL <span>Database</span></div>
+          <div class="ln-ticker-item">🔔 Real-time <span>Monitoring</span></div>
+          <div class="ln-ticker-item">🛡️ Always-on <span>Uptime</span></div>
+          <!-- duplicate for seamless loop -->
+          <div class="ln-ticker-item">🤖 WhatsApp <span>Bots</span></div>
+          <div class="ln-ticker-item">☁️ Cloudflare <span>DNS</span></div>
+          <div class="ln-ticker-item">💳 M-Pesa <span>Payments</span></div>
+          <div class="ln-ticker-item">🌐 courtneytech.xyz <span>Subdomains</span></div>
+          <div class="ln-ticker-item">🔐 GitHub OAuth <span>Auth</span></div>
+          <div class="ln-ticker-item">⚡ Pterodactyl <span>Panel</span></div>
+          <div class="ln-ticker-item">📧 Resend <span>Email</span></div>
+          <div class="ln-ticker-item">🐘 PostgreSQL <span>Database</span></div>
+          <div class="ln-ticker-item">🔔 Real-time <span>Monitoring</span></div>
+          <div class="ln-ticker-item">🛡️ Always-on <span>Uptime</span></div>
+        </div>
       </div>
 
-      <!-- Direct send panel -->
-      <div class="amt-panel active" id="amt-panel-direct">
-        <label style="display:block;font-size:12px;font-weight:600;color:#aaa;margin-bottom:6px">Recipient Email</label>
-        <input class="amt-input" id="amt-d-email" type="email" placeholder="friend@example.com" autocomplete="off" />
+      <!-- Hero -->
+      <section class="ln-hero">
+        <div class="ln-badge"><div class="ln-badge-dot"></div> Now live at hosts.courtneytech.xyz</div>
+        <h1 class="ln-h1">
+          Platform For<br>
+          <span class="ln-h1-accent">Deploying, Hosting,<br>and Scaling Bots</span>
+        </h1>
+        <p class="ln-sub">Courtney Hosting is your fastest path to running a WhatsApp bot. Pick a bot, connect your number, and go live in under 2 minutes.</p>
+        <div class="ln-ctas">
+          <a href="/dashboard" class="ln-btn-big primary">⚡ Deploy for free</a>
+          <a href="/bots" class="ln-btn-big secondary">🔍 Browse bots</a>
+        </div>
+        <div class="ln-trust">
+          <div class="ln-trust-pill">🔐 GitHub OAuth</div>
+          <div class="ln-trust-pill">💳 M-Pesa &amp; Paystack</div>
+          <div class="ln-trust-pill">🌐 Free subdomain included</div>
+          <div class="ln-trust-pill">✅ 2-day free trial</div>
+        </div>
+      </section>
 
-        <div class="amt-currency-row">
-          <label>Amount</label>
-          <div class="amt-toggle">
-            <button class="active" id="amt-d-coins-btn" onclick="amtSetCurrency('direct','coins')">Coins</button>
-            <button id="amt-d-kes-btn" onclick="amtSetCurrency('direct','kes')">KES</button>
+      <!-- Terminal demo -->
+      <div class="ln-terminal-wrap">
+        <div class="ln-terminal">
+          <div class="ln-terminal-bar">
+            <div class="ln-dot r"></div><div class="ln-dot y"></div><div class="ln-dot g"></div>
+            <span class="ln-terminal-title">Courtney Hosting — Deploy Console</span>
+          </div>
+          <div class="ln-terminal-body">
+            <div class="ln-cmd">connect whatsapp --scan-qr</div>
+            <div class="ln-out">✓ WhatsApp linked — mzee@courtneytech.xyz</div>
+            <div class="ln-cmd">deploy truth-md --plan standard</div>
+            <div class="ln-out">→ Pulling latest image…</div>
+            <div class="ln-out">→ Allocating container (512MB RAM)</div>
+            <div class="ln-out">→ Setting DNS: truth.courtneytech.xyz</div>
+            <div class="ln-ok">✓ Bot deployed and running!</div>
+            <div class="ln-cmd">status<span class="ln-cursor"></span></div>
           </div>
         </div>
-        <input class="amt-input" id="amt-d-amount" type="number" placeholder="e.g. 100" min="1" />
-        <p class="amt-hint" id="amt-d-hint"></p>
-
-        <button class="amt-btn" id="amt-d-send">Send Coins</button>
-        <div class="amt-msg" id="amt-d-msg"></div>
       </div>
 
-      <!-- Share link panel -->
-      <div class="amt-panel" id="amt-panel-link">
-        <p style="font-size:13px;color:#888;margin:0 0 16px">Coins are deducted now. The first person to open the link claims them. Link expires in 24 hours.</p>
+      <!-- Bot cards section -->
+      <section class="ln-section">
+        <div class="ln-section-label">Available Bots</div>
+        <h2 class="ln-section-title">Pick a bot, go live instantly</h2>
+        <p class="ln-section-sub">Battle-tested bots with full feature sets. New users get their first bot free.</p>
+        <div class="ln-bots-grid">
 
-        <div class="amt-currency-row">
-          <label>Amount to lock</label>
-          <div class="amt-toggle">
-            <button class="active" id="amt-l-coins-btn" onclick="amtSetCurrency('link','coins')">Coins</button>
-            <button id="amt-l-kes-btn" onclick="amtSetCurrency('link','kes')">KES</button>
+          <a href="/bots" class="ln-bot-card">
+            <div class="ln-bot-header">
+              <div class="ln-bot-avatar">🤖</div>
+              <div>
+                <div class="ln-bot-name">TRUTH</div>
+                <div class="ln-bot-tag">Official</div>
+              </div>
+            </div>
+            <p class="ln-bot-desc">The flagship WhatsApp automation bot — built and maintained by Courtney Hosting. Battle-tested, always-on.</p>
+            <div class="ln-bot-features">
+              <span class="ln-bot-feat">AI auto replies</span>
+              <span class="ln-bot-feat">Group management</span>
+              <span class="ln-bot-feat">Media downloads</span>
+              <span class="ln-bot-feat">Anti-delete</span>
+            </div>
+            <div class="ln-bot-footer">
+              <div class="ln-bot-price">900 coins<span>/mo</span></div>
+              <button class="ln-deploy-btn">⚡ Deploy</button>
+            </div>
+          </a>
+
+          <a href="/bots" class="ln-bot-card">
+            <div class="ln-bot-header">
+              <div class="ln-bot-avatar" style="background:linear-gradient(135deg,#7c3aed,#a855f7)">🧠</div>
+              <div>
+                <div class="ln-bot-name">AI BOT</div>
+                <div class="ln-bot-tag" style="background:rgba(168,85,247,0.12);color:#a855f7">AI</div>
+              </div>
+            </div>
+            <p class="ln-bot-desc">Powered by GPT-4 for intelligent conversations, smart replies, and custom AI commands.</p>
+            <div class="ln-bot-features">
+              <span class="ln-bot-feat">GPT-4 powered</span>
+              <span class="ln-bot-feat">Custom personas</span>
+              <span class="ln-bot-feat">Image generation</span>
+              <span class="ln-bot-feat">Scheduled tasks</span>
+            </div>
+            <div class="ln-bot-footer">
+              <div class="ln-bot-price">1200 coins<span>/mo</span></div>
+              <button class="ln-deploy-btn">⚡ Deploy</button>
+            </div>
+          </a>
+
+          <a href="/subdomains" class="ln-bot-card">
+            <div class="ln-bot-header">
+              <div class="ln-bot-avatar" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4)">🌐</div>
+              <div>
+                <div class="ln-bot-name">Subdomains</div>
+                <div class="ln-bot-tag" style="background:rgba(14,165,233,0.12);color:#0ea5e9">DNS</div>
+              </div>
+            </div>
+            <p class="ln-bot-desc">Get your own <strong style="color:#fff">*.courtneytech.xyz</strong> subdomain with full DNS management in seconds.</p>
+            <div class="ln-bot-features">
+              <span class="ln-bot-feat">Instant DNS</span>
+              <span class="ln-bot-feat">A/CNAME/TXT records</span>
+              <span class="ln-bot-feat">SSL included</span>
+              <span class="ln-bot-feat">From 100 KES</span>
+            </div>
+            <div class="ln-bot-footer">
+              <div class="ln-bot-price">From 100 KES<span>/mo</span></div>
+              <button class="ln-deploy-btn" style="background:#0ea5e9">🌐 Get domain</button>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section class="ln-section">
+        <div class="ln-section-label">Why Courtney Hosting</div>
+        <h2 class="ln-section-title">Everything you need, nothing you don't</h2>
+        <div class="ln-features">
+          <div class="ln-feat-card">
+            <div class="ln-feat-icon">⚡</div>
+            <div class="ln-feat-title">Deploy in 2 minutes</div>
+            <div class="ln-feat-desc">Pick a bot, scan the QR, go live. No command line, no config files, no waiting.</div>
+          </div>
+          <div class="ln-feat-card">
+            <div class="ln-feat-icon">🌐</div>
+            <div class="ln-feat-title">Free subdomain</div>
+            <div class="ln-feat-desc">Every account gets a <strong style="color:#a1a1aa">yourname.courtneytech.xyz</strong> subdomain with Cloudflare DNS.</div>
+          </div>
+          <div class="ln-feat-card">
+            <div class="ln-feat-icon">💳</div>
+            <div class="ln-feat-title">Pay with M-Pesa</div>
+            <div class="ln-feat-desc">Top up coins instantly via M-Pesa STK push. No bank card required.</div>
+          </div>
+          <div class="ln-feat-card">
+            <div class="ln-feat-icon">🔒</div>
+            <div class="ln-feat-title">GitHub OAuth login</div>
+            <div class="ln-feat-desc">One click sign-in with GitHub or Google. No passwords to remember.</div>
+          </div>
+          <div class="ln-feat-card">
+            <div class="ln-feat-icon">📊</div>
+            <div class="ln-feat-title">Real-time monitoring</div>
+            <div class="ln-feat-desc">See CPU, RAM, and uptime for every bot live from your dashboard.</div>
+          </div>
+          <div class="ln-feat-card">
+            <div class="ln-feat-icon">🔔</div>
+            <div class="ln-feat-title">Always-on alerts</div>
+            <div class="ln-feat-desc">Email and in-app notifications when your bot restarts or goes offline.</div>
           </div>
         </div>
-        <input class="amt-input" id="amt-l-amount" type="number" placeholder="e.g. 500" min="1" />
-        <p class="amt-hint" id="amt-l-hint"></p>
+      </section>
 
-        <button class="amt-btn" id="amt-l-create">Create Link</button>
-
-        <div id="amt-link-result" style="display:none">
-          <div class="amt-link-box">
-            <span id="amt-link-url"></span>
-            <button class="amt-copy-btn" onclick="amtCopyLink()">Copy</button>
+      <!-- Footer -->
+      <footer style="border-top:1px solid rgba(255,255,255,0.06);padding:28px 20px;">
+        <div style="max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;font-size:12px;color:#52525b;">
+          <span>© 2026 Courtney Hosting Inc. All rights reserved.</span>
+          <div style="display:flex;gap:20px;">
+            <a href="/pricing" style="color:#52525b;text-decoration:none;">Pricing</a>
+            <a href="/subdomains" style="color:#52525b;text-decoration:none;">Domains</a>
+            <a href="/bots" style="color:#52525b;text-decoration:none;">Bots</a>
+            <a href="/dashboard" style="color:#52525b;text-decoration:none;">Dashboard</a>
           </div>
-          <p class="amt-link-meta" id="amt-link-meta"></p>
-          <button class="amt-btn" style="margin-top:10px" onclick="amtNativeShare()">
-            Share via WhatsApp / SMS…
-          </button>
         </div>
-        <div class="amt-msg" id="amt-l-msg"></div>
-      </div>
+      </footer>
 
-      <button class="amt-btn-ghost" id="amt-close">Close</button>
-    </div>
-  </div>
+    </div><!-- /landing -->
 
-  <!-- Resource Metrics Widget -->
-  <style>
-    .amt-res-row {
-      display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;
+    <script>
+    // Show landing page only at root "/"
+    if (window.__IS_LANDING__) {
+      document.getElementById('landing').style.display = 'flex';
+      document.getElementById('root').style.display = 'none';
     }
-    .amt-res-pill {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px; padding: 3px 8px; font-family: 'Inter', sans-serif;
-      font-size: 11px; color: #888; transition: color 0.3s, border-color 0.3s;
-      white-space: nowrap;
-    }
-    .amt-res-pill.has-data { color: #ccc; border-color: rgba(var(--primary-rgb),0.15); }
-    .amt-res-pill svg { flex-shrink: 0; }
-    .amt-res-label { color: #555; font-size: 10px; margin-right: 1px; }
-    .amt-res-spin { display: inline-block; width: 8px; height: 8px; border: 1.5px solid #333; border-top-color: hsl(var(--primary)); border-radius: 50%; animation: amt-spin 0.7s linear infinite; }
-    @keyframes amt-spin { to { transform: rotate(360deg); } }
-  </style>
-  <script>
-  (function () {
-    // ── Resource Metrics ──────────────────────────────────────
-    // Formats bytes to MB / GB
-    function fmtBytes(b) {
-      if (b == null) return '—';
-      const mb = b / 1048576;
-      return mb < 1024 ? mb.toFixed(0) + ' MB' : (mb / 1024).toFixed(1) + ' GB';
-    }
-    function fmtCpu(p) {
-      if (p == null) return '—';
-      return p.toFixed(1) + '%';
-    }
-    function fmtUptime(ms) {
-      if (ms == null) return null;
-      const totalMin = Math.floor(ms / 60000);
-      if (totalMin < 1) return '< 1m';
-      const d = Math.floor(totalMin / 1440);
-      const h = Math.floor((totalMin % 1440) / 60);
-      const m = totalMin % 60;
-      let s = '';
-      if (d > 0) s += d + 'd ';
-      if (h > 0) s += h + 'h ';
-      if (m > 0 || (d === 0 && h === 0)) s += m + 'm';
-      return s.trim();
-    }
+    </script>
 
-    // Fetch helpers (credentials: include so session cookie is sent)
-    async function apiFetch(path2) {
-      const r = await fetch('/api' + path2, { credentials: 'include' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    }
+    <!-- ===== REACT APP EXTRAS (sidebar Domains injection, coins FAB) ===== -->
+    <style>
+      #amt-fab {
+        position: fixed; bottom: 84px; right: 18px; z-index: 9999;
+        background: hsl(var(--primary)); color: #0a0a0a; border: none; border-radius: 50px;
+        padding: 12px 20px; font-family: 'Inter', sans-serif; font-weight: 700;
+        font-size: 14px; cursor: pointer; display: none; align-items: center;
+        gap: 8px; box-shadow: 0 4px 24px rgba(var(--primary-rgb),0.35);
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+      #amt-fab:hover { transform: scale(1.05); box-shadow: 0 6px 32px rgba(var(--primary-rgb),0.5); }
+      #amt-overlay {
+        display: none; position: fixed; inset: 0; z-index: 10000;
+        background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+        align-items: flex-end; justify-content: center;
+      }
+      #ch-subdomain-btn {
+        position: fixed; bottom: 140px; right: 18px; z-index: 9997;
+        background: hsl(var(--primary, 153 100% 45%)); color: #000;
+        border: none; border-radius: 50px; padding: 10px 16px;
+        font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px;
+        cursor: pointer; display: flex; align-items: center; gap: 7px;
+        box-shadow: 0 4px 20px rgba(0,229,153,0.3); text-decoration: none;
+        transition: transform 0.15s, box-shadow 0.15s; white-space: nowrap;
+      }
+      #ch-subdomain-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(0,229,153,0.5); }
+    </style>
 
-    // Cache: botId → last fetched resources
-    const resCache = {};
-    // Cache: botName → botId (populated from my-bots list)
-    let nameToBot = {};
+    <script>
+    if (!window.__IS_LANDING__) {
+      // Share Coins FAB (for React app pages)
+      document.write('<button id="amt-fab" onclick="document.getElementById(\'amt-overlay\').style.display=\'flex\'">🪙 Share Coins</button>');
 
-    async function refreshBotList() {
-      try {
-        const data = await apiFetch('/bots/my-bots');
-        // Response shape: { bots: [...] }
-        const bots = Array.isArray(data) ? data : (Array.isArray(data?.bots) ? data.bots : null);
-        if (!bots) {
-          console.debug('[AMT-RES] Unexpected /api/bots/my-bots shape:', typeof data, Object.keys(data || {}));
-          return;
+      // Subdomains FAB fallback
+      document.write('<a id="ch-subdomain-btn" href="/subdomains" title="Buy a subdomain">🌐 Domains</a>');
+
+      // Inject Domains into React sidebar
+      (function() {
+        const HREF = '/subdomains', ATTR = 'data-ch-sd';
+        function makeDomainLink(template) {
+          const clone = template.cloneNode(true);
+          clone.setAttribute(ATTR, '1');
+          clone.removeAttribute('aria-current'); clone.removeAttribute('aria-selected');
+          if (clone.tagName === 'A') { clone.href = HREF; }
+          else { clone.addEventListener('click', function(e){ e.preventDefault(); window.location.href=HREF; }); }
+          const textNodes = [];
+          (function walk(node){ if(node.nodeType===3&&node.textContent.trim()) textNodes.push(node); else node.childNodes.forEach(walk); })(clone);
+          if (textNodes.length) textNodes[textNodes.length-1].textContent = 'Domains';
+          clone.querySelectorAll('svg').forEach(svg=>{
+            svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none');
+            svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','2');
+            svg.setAttribute('stroke-linecap','round'); svg.setAttribute('stroke-linejoin','round');
+            svg.innerHTML='<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>';
+          });
+          return clone;
         }
-        nameToBot = {};
-        for (const b of bots) nameToBot[b.name] = b;
-      } catch { /* not logged in or network error */ }
-    }
-
-    function makePill(label, value, loading) {
-      const pill = document.createElement('span');
-      pill.className = 'amt-res-pill';
-      if (!loading) pill.classList.add('has-data');
-      if (loading) {
-        pill.innerHTML = '<span class="amt-res-spin"></span>';
-      } else {
-        pill.innerHTML =
-          '<span class="amt-res-label">' + label + '</span>' +
-          '<span>' + value + '</span>';
-      }
-      return pill;
-    }
-
-    function upsertWidget(card, state) {
-      // state: null = loading, object = resources data (or {unavailable:true})
-      let row = card.querySelector('.amt-res-row');
-      const isNew = !row;
-      if (isNew) {
-        row = document.createElement('div');
-        row.className = 'amt-res-row';
-      }
-      row.innerHTML = '';
-
-      if (state === null) {
-        // Loading
-        row.appendChild(makePill(null, null, true));
-        row.appendChild(makePill(null, null, true));
-        row.appendChild(makePill(null, null, true));
-      } else if (state.unavailable) {
-        const pill = document.createElement('span');
-        pill.className = 'amt-res-pill';
-        pill.textContent = 'Metrics unavailable';
-        pill.style.fontStyle = 'italic';
-        row.appendChild(pill);
-      } else {
-        row.appendChild(makePill('CPU', fmtCpu(state.cpuAbsolute)));
-        row.appendChild(makePill('RAM', fmtBytes(state.memoryBytes)));
-        row.appendChild(makePill('DISK', fmtBytes(state.diskBytes)));
-        const uptime = fmtUptime(state.uptimeMilliseconds);
-        if (uptime != null) row.appendChild(makePill('UP', uptime));
-      }
-
-      if (isNew) {
-        // Insert after the status row (h4's sibling), inside the .min-w-0 container
-        const h4 = card.querySelector('h4');
-        if (!h4) return;
-        const container = h4.parentElement; // .min-w-0 div
-        const statusRow = h4.nextElementSibling; // div.flex.items-center.gap-2.mt-1
-        if (statusRow) statusRow.insertAdjacentElement('afterend', row);
-        else container.appendChild(row);
-      }
-    }
-
-    async function fetchAndInject(card, bot) {
-      // Show loading spinners the first time
-      if (!card.querySelector('.amt-res-row')) upsertWidget(card, null);
-
-      try {
-        const data = await apiFetch('/bots/' + bot.id + '/resources');
-        if (!data.available || !data.resources) {
-          upsertWidget(card, { unavailable: true });
-        } else {
-          resCache[bot.id] = data.resources;
-          upsertWidget(card, data.resources);
-        }
-      } catch {
-        upsertWidget(card, { unavailable: true });
-      }
-    }
-
-    async function tick() {
-      await refreshBotList();
-      if (!Object.keys(nameToBot).length) return;
-
-      // Find all bot name headings in glass-panel cards
-      const h4s = document.querySelectorAll('h4');
-      for (const h4 of h4s) {
-        const name = h4.textContent.trim();
-        const bot = nameToBot[name];
-        if (!bot) continue;
-
-        const card = h4.closest('.glass-panel');
-        if (!card) continue;
-
-        // Only show metrics for running bots with a panel server
-        if (bot.status !== 'running' || !bot.pterodactylServerId) {
-          // Remove stale widget if bot is no longer running
-          const stale = card.querySelector('.amt-res-row');
-          if (stale) stale.remove();
-          continue;
-        }
-
-        fetchAndInject(card, bot);
-      }
-    }
-
-    // Initial delay to let React finish first render, then poll every 12 s
-    setTimeout(tick, 2500);
-    setInterval(tick, 12000);
-  })();
-  </script>
-
-  <script>
-  (function () {
-    // ── Constants ──────────────────────────────────────────────
-    const KES_PER_COIN = 0.5; // 1 coin = KES 0.50 (Starter rate: 100 coins / KES 50)
-    const COINS_PER_KES = 2;  // 1 KES = 2 coins
-
-    // ── State ──────────────────────────────────────────────────
-    let myCoins = null;
-    let dMode = 'coins'; // direct send currency mode
-    let lMode = 'coins'; // link currency mode
-    let generatedLink = null;
-
-    // ── Elements ───────────────────────────────────────────────
-    const fab    = document.getElementById('amt-fab');
-    const overlay= document.getElementById('amt-overlay');
-    const balEl  = document.getElementById('amt-bal');
-    const closeBtn = document.getElementById('amt-close');
-    const toast  = document.getElementById('amt-toast');
-
-    // ── Toast ──────────────────────────────────────────────────
-    let toastTimer;
-    function showToast(msg, isErr) {
-      clearTimeout(toastTimer);
-      toast.textContent = msg;
-      toast.className = isErr ? 'err-toast show' : 'show';
-      toastTimer = setTimeout(() => toast.className = '', 3500);
-    }
-
-    // ── API ────────────────────────────────────────────────────
-    async function api(method, path, body) {
-      const r = await fetch('/api' + path, {
-        method, credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: body ? JSON.stringify(body) : undefined
-      });
-      return { ok: r.ok, data: await r.json() };
-    }
-
-    async function fetchMe() {
-      try {
-        const { ok, data } = await api('GET', '/users/me');
-        return ok ? data : null;
-      } catch { return null; }
-    }
-
-    // ── Currency helpers ───────────────────────────────────────
-    window.amtSetCurrency = function(panel, mode) {
-      if (panel === 'direct') {
-        dMode = mode;
-        document.getElementById('amt-d-coins-btn').className = mode === 'coins' ? 'active' : '';
-        document.getElementById('amt-d-kes-btn').className   = mode === 'kes'   ? 'active' : '';
-        updateHint('direct');
-      } else {
-        lMode = mode;
-        document.getElementById('amt-l-coins-btn').className = mode === 'coins' ? 'active' : '';
-        document.getElementById('amt-l-kes-btn').className   = mode === 'kes'   ? 'active' : '';
-        updateHint('link');
-      }
-    };
-
-    function updateHint(panel) {
-      const isLink  = panel === 'link';
-      const mode    = isLink ? lMode : dMode;
-      const input   = document.getElementById(isLink ? 'amt-l-amount' : 'amt-d-amount');
-      const hint    = document.getElementById(isLink ? 'amt-l-hint'   : 'amt-d-hint');
-      const val     = parseFloat(input.value);
-      if (!val || isNaN(val) || val <= 0) { hint.textContent = mode === 'kes' ? `1 KES = ${COINS_PER_KES} coins` : `1 coin = KES ${KES_PER_COIN}`; return; }
-      if (mode === 'kes') {
-        const coins = Math.floor(val * COINS_PER_KES);
-        hint.textContent = `≈ ${coins.toLocaleString()} coins`;
-      } else {
-        hint.textContent = `≈ KES ${(val * KES_PER_COIN).toLocaleString()}`;
-      }
-    }
-
-    function coinsFromInput(panel) {
-      const isLink = panel === 'link';
-      const mode   = isLink ? lMode : dMode;
-      const val    = parseFloat(document.getElementById(isLink ? 'amt-l-amount' : 'amt-d-amount').value);
-      if (!val || isNaN(val) || val < 1) return null;
-      return mode === 'kes' ? Math.floor(val * COINS_PER_KES) : Math.floor(val);
-    }
-
-    // ── Tabs ───────────────────────────────────────────────────
-    document.querySelectorAll('.amt-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.amt-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.amt-panel').forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('amt-panel-' + tab.dataset.tab).classList.add('active');
-        clearMsgs();
-      });
-    });
-
-    // ── Amount hint on input ───────────────────────────────────
-    document.getElementById('amt-d-amount').addEventListener('input', () => updateHint('direct'));
-    document.getElementById('amt-l-amount').addEventListener('input', () => updateHint('link'));
-
-    // ── Open / Close ───────────────────────────────────────────
-    fab.addEventListener('click', async () => {
-      clearMsgs();
-      document.getElementById('amt-link-result').style.display = 'none';
-      generatedLink = null;
-      const user = await fetchMe();
-      if (user) { myCoins = user.coins; balEl.textContent = myCoins.toLocaleString(); }
-      overlay.classList.add('open');
-    });
-
-    function closeModal() { overlay.classList.remove('open'); }
-    closeBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-
-    function clearMsgs() {
-      ['amt-d-msg','amt-l-msg'].forEach(id => {
-        const el = document.getElementById(id);
-        el.textContent = ''; el.className = 'amt-msg';
-      });
-    }
-
-    function setMsg(id, text, isErr) {
-      const el = document.getElementById(id);
-      el.textContent = text;
-      el.className = 'amt-msg ' + (isErr ? 'err' : 'ok');
-    }
-
-    // ── Direct send ────────────────────────────────────────────
-    document.getElementById('amt-d-send').addEventListener('click', async () => {
-      const btn   = document.getElementById('amt-d-send');
-      const email = document.getElementById('amt-d-email').value.trim();
-      const coins = coinsFromInput('direct');
-      if (!email) { setMsg('amt-d-msg', 'Please enter a recipient email.', true); return; }
-      if (!coins)  { setMsg('amt-d-msg', 'Please enter a valid amount.', true); return; }
-      if (myCoins !== null && coins > myCoins) {
-        setMsg('amt-d-msg', `Not enough coins. You have ${myCoins.toLocaleString()}.`, true); return;
-      }
-      btn.disabled = true; btn.textContent = 'Sending…';
-      try {
-        const { ok, data } = await api('POST', '/users/transfer-coins', { recipientEmail: email, amount: coins });
-        if (!ok) { setMsg('amt-d-msg', data.error || 'Transfer failed.', true); }
-        else {
-          myCoins = data.coins; balEl.textContent = myCoins.toLocaleString();
-          setMsg('amt-d-msg', `✓ ${coins.toLocaleString()} coins sent to ${email}`, false);
-          document.getElementById('amt-d-email').value = '';
-          document.getElementById('amt-d-amount').value = '';
-          document.getElementById('amt-d-hint').textContent = '';
-        }
-      } catch { setMsg('amt-d-msg', 'Network error. Please try again.', true); }
-      finally { btn.disabled = false; btn.textContent = 'Send Coins'; }
-    });
-
-    // ── Create link ────────────────────────────────────────────
-    document.getElementById('amt-l-create').addEventListener('click', async () => {
-      const btn   = document.getElementById('amt-l-create');
-      const coins = coinsFromInput('link');
-      if (!coins) { setMsg('amt-l-msg', 'Please enter a valid amount.', true); return; }
-      if (myCoins !== null && coins > myCoins) {
-        setMsg('amt-l-msg', `Not enough coins. You have ${myCoins.toLocaleString()}.`, true); return;
-      }
-      btn.disabled = true; btn.textContent = 'Creating…';
-      document.getElementById('amt-link-result').style.display = 'none';
-      try {
-        const { ok, data } = await api('POST', '/users/coin-link', { amount: coins });
-        if (!ok) { setMsg('amt-l-msg', data.error || 'Failed to create link.', true); }
-        else {
-          myCoins = data.coins; balEl.textContent = myCoins.toLocaleString();
-          const link = `${location.origin}/claim/${data.token}`;
-          generatedLink = link;
-          document.getElementById('amt-link-url').textContent = link;
-          const exp = new Date(data.expiresAt);
-          document.getElementById('amt-link-meta').textContent =
-            `${coins.toLocaleString()} coins locked · expires ${exp.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} tomorrow`;
-          document.getElementById('amt-link-result').style.display = 'block';
-          setMsg('amt-l-msg', '', false);
-          document.getElementById('amt-l-amount').value = '';
-          document.getElementById('amt-l-hint').textContent = '';
-        }
-      } catch { setMsg('amt-l-msg', 'Network error. Please try again.', true); }
-      finally { btn.disabled = false; btn.textContent = 'Create Link'; }
-    });
-
-    // ── Copy & native share ────────────────────────────────────
-    window.amtCopyLink = function() {
-      if (!generatedLink) return;
-      navigator.clipboard.writeText(generatedLink).then(() => showToast('Link copied!', false)).catch(() => showToast('Copy failed — select the link manually.', true));
-    };
-    window.amtNativeShare = function() {
-      if (!generatedLink) return;
-      if (navigator.share) {
-        navigator.share({ title: 'Claim your free coins!', text: '🪙 Someone sent you coins on Courtney Hosting — claim them here:', url: generatedLink }).catch(() => {});
-      } else {
-        amtCopyLink();
-      }
-    };
-
-    // ── Init ───────────────────────────────────────────────────
-    async function init() {
-      const user = await fetchMe();
-      if (!user) { setTimeout(init, 3000); return; }
-      myCoins = user.coins;
-      balEl.textContent = myCoins.toLocaleString();
-      fab.style.display = 'flex';
-
-      // Handle claim result redirected from server
-      const params = new URLSearchParams(location.search);
-      if (params.has('claimed')) {
-        const n = parseInt(params.get('claimed'), 10);
-        showToast(`🎉 You claimed ${n.toLocaleString()} coins!`, false);
-        history.replaceState({}, '', location.pathname);
-      } else if (params.has('claimError')) {
-        showToast(params.get('claimError'), true);
-        history.replaceState({}, '', location.pathname);
-      }
-    }
-
-    // Handle ?pendingClaim= (user not logged in when they opened the link)
-    (function checkPendingClaim() {
-      const params = new URLSearchParams(location.search);
-      if (params.has('pendingClaim')) {
-        const token = params.get('pendingClaim');
-        // Store token so after login the page can auto-redirect
-        sessionStorage.setItem('pendingClaimToken', token);
-        document.getElementById('amt-claim-title').textContent = 'Coins waiting for you!';
-        document.getElementById('amt-claim-desc').textContent = 'Login or sign up to claim the coins sent to you.';
-        document.getElementById('amt-claim-overlay').classList.add('open');
-        history.replaceState({}, '', location.pathname);
-      }
-      // After login, check if there's a stored pending claim
-      const stored = sessionStorage.getItem('pendingClaimToken');
-      if (stored) {
-        // Wait for app to load, then try to claim via API
-        setTimeout(async () => {
-          const user = await fetchMe();
-          if (user) {
-            sessionStorage.removeItem('pendingClaimToken');
-            const { ok, data } = await api('POST', `/users/coin-claim/${stored}`, {});
-            if (ok) showToast(`🎉 You claimed ${data.amount?.toLocaleString()} coins!`, false);
-            else if (data.error) showToast(data.error, true);
+        function tryInject() {
+          if (document.querySelector('['+ATTR+']')) return true;
+          const selectors = ['nav a[href]','aside a[href]','[role="navigation"] a[href]','[data-sidebar] a','[class*="sidebar"] a[href]','ul li a[href]'];
+          let links = [];
+          for (const sel of selectors) {
+            links = Array.from(document.querySelectorAll(sel)).filter(el=>el.offsetParent!==null&&el.textContent.trim().length>0);
+            if (links.length>=2) break;
           }
-        }, 2000);
-      }
-    })();
-
-    init();
-  })();
-  </script>
-
-  <!-- Colour Theme Picker -->
-  <style>
-    #amt-color-btn {
-      position: fixed; bottom: 148px; right: 18px; z-index: 9998;
-      width: 48px; height: 48px; border-radius: 50%;
-      border: 2px solid hsl(var(--primary));
-      background: rgba(20,20,20,0.95); backdrop-filter: blur(12px);
-      cursor: pointer; display: none; align-items: center; justify-content: center;
-      box-shadow: 0 6px 24px rgba(var(--primary-rgb),0.3);
-      transition: all 0.2s ease;
-    }
-    #amt-color-btn:hover { 
-      transform: scale(1.15); 
-      border-color: rgba(255,255,255,0.6);
-      box-shadow: 0 8px 32px rgba(var(--primary-rgb),0.5);
-    }
-    #amt-color-btn svg { width: 20px; height: 20px; color: hsl(var(--primary)); }
-    #amt-color-panel {
-      display: none; position: fixed; bottom: 210px; right: 18px; z-index: 9997;
-      background: rgba(15,15,15,0.98); backdrop-filter: blur(16px);
-      border: 1px solid rgba(var(--primary-rgb),0.2); border-radius: 20px;
-      padding: 16px; box-shadow: 0 12px 48px rgba(0,0,0,0.8);
-      flex-direction: column; gap: 12px; width: 220px;
-    }
-    #amt-color-panel .cp-title {
-      font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
-      color: hsl(var(--primary)); text-transform: uppercase; letter-spacing: 0.1em;
-      margin-bottom: 4px;
-    }
-    #amt-color-swatches {
-      display: grid; grid-template-columns: repeat(5,1fr); gap: 10px;
-    }
-    .amt-swatch {
-      width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent;
-      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    .amt-swatch:hover { 
-      transform: scale(1.2); 
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-    }
-    .amt-swatch.active { 
-      border-color: rgba(255,255,255,0.9);
-      box-shadow: 0 0 12px rgba(255,255,255,0.4);
-      transform: scale(1.05);
-    }
-  </style>
-  <button id="amt-color-btn" title="Change theme colour" aria-label="Theme colour picker">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.7)">
-      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
-      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
-      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
-    </svg>
-  </button>
-  <div id="amt-color-panel">
-    <div class="cp-title">Theme Colour</div>
-    <div id="amt-color-swatches"></div>
-  </div>
-  <script>
-  (function() {
-    const COLORS = [
-      { label: 'Green',   hsl: '160 100% 45%', hex: '#00e599', rgb: '0,229,153'   },
-      { label: 'Blue',    hsl: '217 91% 60%',  hex: '#3b82f6', rgb: '59,130,246'  },
-      { label: 'Purple',  hsl: '270 91% 65%',  hex: '#a855f7', rgb: '168,85,247'  },
-      { label: 'Pink',    hsl: '330 86% 62%',  hex: '#f43f8e', rgb: '244,63,142'  },
-      { label: 'Orange',  hsl: '25 95% 55%',   hex: '#f97316', rgb: '249,115,22'  },
-      { label: 'Red',     hsl: '0 84% 60%',    hex: '#ef4444', rgb: '239,68,68'   },
-      { label: 'Cyan',    hsl: '192 91% 50%',  hex: '#06b6d4', rgb: '6,182,212'   },
-      { label: 'Yellow',  hsl: '45 93% 55%',   hex: '#eab308', rgb: '234,179,8'   },
-      { label: 'Teal',    hsl: '174 72% 45%',  hex: '#14b8a6', rgb: '20,184,166'  },
-      { label: 'Indigo',  hsl: '239 84% 67%',  hex: '#6366f1', rgb: '99,102,241'  },
-    ];
-    const STORAGE_KEY = 'amt-theme-color';
-
-    function applyColor(hsl) {
-      const color = COLORS.find(c => c.hsl === hsl) || COLORS[0];
-      const hex = color.hex;
-      const rgb = color.rgb;
-      document.documentElement.style.setProperty('--primary', hsl);
-      document.documentElement.style.setProperty('--ring', hsl);
-      document.documentElement.style.setProperty('--primary-hex', hex);
-      document.documentElement.style.setProperty('--primary-rgb', rgb);
-      const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', hex);
-    }
-
-    function setActive(hsl) {
-      document.querySelectorAll('.amt-swatch').forEach(s => {
-        s.classList.toggle('active', s.dataset.hsl === hsl);
-      });
-    }
-
-    const btn = document.getElementById('amt-color-btn');
-    const panel = document.getElementById('amt-color-panel');
-    const grid = document.getElementById('amt-color-swatches');
-
-    COLORS.forEach(({ label, hsl, hex }) => {
-      const s = document.createElement('button');
-      s.className = 'amt-swatch';
-      s.title = label;
-      s.dataset.hsl = hsl;
-      s.style.background = hex;
-      s.addEventListener('click', () => {
-        applyColor(hsl);
-        setActive(hsl);
-        localStorage.setItem(STORAGE_KEY, hsl);
-      });
-      grid.appendChild(s);
-    });
-
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const open = panel.style.display === 'flex';
-      panel.style.display = open ? 'none' : 'flex';
-    });
-    document.addEventListener('click', () => { panel.style.display = 'none'; });
-    panel.addEventListener('click', e => e.stopPropagation());
-
-    // Restore saved colour or default green
-    const saved = localStorage.getItem(STORAGE_KEY) || '160 100% 45%';
-    applyColor(saved);
-
-    // Show button only when user is logged in (same logic as FAB)
-    function checkVisibility() {
-      const show = document.cookie.includes('connect.sid') ||
-                   !!document.querySelector('[data-user],[data-authenticated]') ||
-                   window.location.pathname.startsWith('/dashboard') ||
-                   window.location.pathname.startsWith('/bots') ||
-                   window.location.pathname.startsWith('/profile') ||
-                   window.location.pathname.startsWith('/partners');
-      btn.style.display = show ? 'flex' : 'none';
-    }
-    checkVisibility();
-    const _pushState = history.pushState.bind(history);
-    history.pushState = function(...a) { _pushState(...a); setTimeout(checkVisibility, 100); };
-    window.addEventListener('popstate', () => setTimeout(checkVisibility, 100));
-    setActive(saved);
-    
-    // Log color changes to console for debugging
-    console.log('[THEME] Color picker initialized. Available colors:', COLORS.map(c => c.label).join(', '));
-    console.log('[THEME] Current theme:', saved);
-  })();
-  
-  // Real-time Console Log Viewer
-  (function() {
-    const consoleLogKey = 'amt-console-logs';
-    const maxLogs = 500;
-    
-    // Intercept console methods to capture real logs
-    const originalLog = console.log;
-    const originalWarn = console.warn;
-    const originalError = console.error;
-    const originalInfo = console.info;
-    
-    function captureLog(level, args) {
-      try {
-        const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const message = Array.from(args).map(arg => {
-          if (typeof arg === 'object') return JSON.stringify(arg);
-          return String(arg);
-        }).join(' ');
-        
-        const logEntry = { timestamp, level, message };
-        const logs = JSON.parse(sessionStorage.getItem(consoleLogKey) || '[]');
-        logs.push(logEntry);
-        if (logs.length > maxLogs) logs.shift();
-        sessionStorage.setItem(consoleLogKey, JSON.stringify(logs));
-        
-        // Dispatch custom event for real-time UI updates
-        window.dispatchEvent(new CustomEvent('console-log', { detail: logEntry }));
-      } catch (e) {
-        // Silently fail if storage is full
-      }
-    }
-    
-    console.log = function(...args) { originalLog(...args); captureLog('log', args); };
-    console.warn = function(...args) { originalWarn(...args); captureLog('warn', args); };
-    console.error = function(...args) { originalError(...args); captureLog('error', args); };
-    console.info = function(...args) { originalInfo(...args); captureLog('info', args); };
-    
-    // Expose API for accessing logs
-    window.getConsoleLogs = function() {
-      return JSON.parse(sessionStorage.getItem(consoleLogKey) || '[]');
-    };
-    
-    window.clearConsoleLogs = function() {
-      sessionStorage.removeItem(consoleLogKey);
-    };
-    
-    console.log('[CONSOLE] Real-time console capture initialized');
-  })();
-  </script>
-  <!-- Console Logs Storage & Real-time Streaming -->
-  <script>
-  (function() {
-    // Stream bot console logs from Pterodactyl via SSE
-    window.streamBotConsole = function(botId, onLog) {
-      if (!botId) {
-        console.error('[STREAM] Bot ID required');
-        return null;
-      }
-      
-      const eventSource = new EventSource(`/api/bots/${botId}/console-stream`, { withCredentials: true });
-      
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          const logEntry = {
-            timestamp,
-            level: 'stream',
-            message: data.line || String(data),
-            source: 'pterodactyl'
-          };
-          
-          if (onLog) onLog(logEntry);
-          console.log(`[BOT:${botId}] ${data.line}`);
-        } catch (e) {
-          console.error('[STREAM] Failed to parse log:', e);
+          if (!links.length) return false;
+          const sidebarLinks = links.filter(el=>el.getBoundingClientRect().width < window.innerWidth*0.5);
+          const template = (sidebarLinks.length?sidebarLinks:links).slice(-1)[0];
+          if (!template) return false;
+          const parent = template.parentNode;
+          if (!parent) return false;
+          const existing = Array.from(parent.children).find(el=>el.textContent.toLowerCase().includes('domain'));
+          if (existing) { existing.setAttribute(ATTR,'1'); return true; }
+          parent.appendChild(makeDomainLink(template));
+          const fab = document.getElementById('ch-subdomain-btn');
+          if (fab) fab.style.display='none';
+          return true;
         }
-      };
-      
-      eventSource.onerror = (error) => {
-        console.error('[STREAM] Console stream error:', error);
-        eventSource.close();
-      };
-      
-      console.log(`[STREAM] Started streaming logs for bot ${botId}`);
-      return eventSource;
-    };
-    
-    // Get WebSocket credentials for direct console access
-    window.getConsoleWebSocket = async function(botId) {
-      if (!botId) {
-        console.error('[WS] Bot ID required');
-        return null;
-      }
-      
-      try {
-        const response = await fetch(`/api/bots/${botId}/console-ws`, { credentials: 'include' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const { token, socket } = await response.json();
-        console.log(`[WS] Got WebSocket credentials for bot ${botId}`);
-        return { token, socket, botId };
-      } catch (error) {
-        console.error('[WS] Failed to get console credentials:', error);
-        return null;
-      }
-    };
-    
-    console.log('[CONSOLE-API] Console streaming API initialized');
-  })();
-  </script>
-  <!-- Courtney Hosting: Buy Subdomain quick-access button -->
-  <style>
-    #ch-subdomain-btn {
-      position: fixed; bottom: 140px; right: 18px; z-index: 9997;
-      background: hsl(var(--primary, 153 100% 45%)); color: #000;
-      border: none; border-radius: 50px; padding: 10px 16px;
-      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px;
-      cursor: pointer; display: flex; align-items: center; gap: 7px;
-      box-shadow: 0 4px 20px rgba(0,229,153,0.3); text-decoration: none;
-      transition: transform 0.15s, box-shadow 0.15s; white-space: nowrap;
-    }
-    #ch-subdomain-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(0,229,153,0.5); }
-  </style>
-  <a id="ch-subdomain-btn" href="/subdomains" title="Buy a subdomain under courtneytech.xyz">
-    🌐 Subdomains
-  </a>
-  <script>
-  // Inject "Domains" into React sidebar — persistent across React re-renders
-  (function() {
-    const HREF = '/subdomains', ATTR = 'data-ch-sd';
-
-    function makeDomainLink(template) {
-      // Clone structure from an existing sidebar link
-      const clone = template.cloneNode(true);
-      clone.setAttribute(ATTR, '1');
-      clone.removeAttribute('aria-current');
-      clone.removeAttribute('aria-selected');
-
-      // Set href (works for <a> tags; also set onclick for router links)
-      if (clone.tagName === 'A') {
-        clone.href = HREF;
-      } else {
-        clone.addEventListener('click', function(e) {
-          e.preventDefault();
-          window.location.href = HREF;
-        });
-      }
-
-      // Replace every visible text node with "Domains"
-      const textNodes = [];
-      (function walk(node) {
-        if (node.nodeType === 3 && node.textContent.trim()) textNodes.push(node);
-        else node.childNodes.forEach(walk);
-      })(clone);
-      if (textNodes.length) textNodes[textNodes.length - 1].textContent = 'Domains';
-
-      // Replace SVG with a globe icon
-      clone.querySelectorAll('svg').forEach(svg => {
-        svg.setAttribute('viewBox', '0 0 24 24');
-        svg.setAttribute('fill', 'none');
-        svg.setAttribute('stroke', 'currentColor');
-        svg.setAttribute('stroke-width', '2');
-        svg.setAttribute('stroke-linecap', 'round');
-        svg.setAttribute('stroke-linejoin', 'round');
-        svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>';
-      });
-
-      return clone;
-    }
-
-    function tryInject() {
-      if (document.querySelector('[' + ATTR + ']')) return true;
-
-      // Look for sidebar nav items — try multiple selector strategies
-      const selectors = [
-        'nav a[href]',
-        'aside a[href]',
-        '[role="navigation"] a[href]',
-        // Shadcn/Radix sidebar patterns
-        '[data-sidebar] a',
-        '[class*="sidebar"] a[href]',
-        // Fallback: any nav-like list items containing text links
-        'ul li a[href]',
-      ];
-
-      let links = [];
-      for (const sel of selectors) {
-        links = Array.from(document.querySelectorAll(sel))
-          .filter(el => el.offsetParent !== null && el.textContent.trim().length > 0);
-        if (links.length >= 2) break;
-      }
-
-      if (!links.length) return false;
-
-      // Filter to sidebar-only links (exclude header/topbar links)
-      const sidebarLinks = links.filter(el => {
-        const rect = el.getBoundingClientRect();
-        return rect.width < window.innerWidth * 0.5; // sidebar items are not full-width
-      });
-
-      const template = (sidebarLinks.length ? sidebarLinks : links).slice(-1)[0];
-      if (!template) return false;
-
-      // Don't add if "Domains" or "Subdomain" already exists in same container
-      const parent = template.parentNode;
-      if (!parent) return false;
-      const existing = Array.from(parent.children).find(el =>
-        el.textContent.toLowerCase().includes('domain') || el.textContent.toLowerCase().includes('subdomain')
-      );
-      if (existing) { existing.setAttribute(ATTR, '1'); return true; }
-
-      const link = makeDomainLink(template);
-      parent.appendChild(link);
-
-      // Hide FAB now that sidebar has the link
-      const fab = document.getElementById('ch-subdomain-btn');
-      if (fab) fab.style.display = 'none';
-      return true;
-    }
-
-    // Run immediately, then watch for React re-renders (sidebar open/close, navigation)
-    if (!tryInject()) {
-      const obs = new MutationObserver(() => {
-        tryInject(); // re-inject every time DOM changes (handles sidebar re-renders)
-      });
-      obs.observe(document.body, { childList: true, subtree: true });
-      // Never fully disconnect — sidebar can re-render on every route change
-      setTimeout(() => {
-        obs.disconnect();
-        // Final fallback: keep FAB always visible if injection never worked
-        const fab = document.getElementById('ch-subdomain-btn');
-        if (fab && !document.querySelector('[' + ATTR + ']')) {
-          fab.style.display = 'flex';
+        if (!tryInject()) {
+          const obs = new MutationObserver(()=>{ tryInject(); });
+          obs.observe(document.body, {childList:true,subtree:true});
+          setTimeout(()=>{
+            obs.disconnect();
+            const fab = document.getElementById('ch-subdomain-btn');
+            if (fab && !document.querySelector('['+ATTR+']')) fab.style.display='flex';
+          }, 30000);
         }
-      }, 30000);
+      })();
     }
-  })();
-  </script>
+    </script>
+
   </body>
 </html>
