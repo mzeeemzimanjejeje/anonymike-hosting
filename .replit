@@ -25,7 +25,7 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
-ADMIN_EMAILS = "admin@anonymiketech.online"
+ADMIN_EMAILS = "admin@courtneytech.xyz"
 LOG_LEVEL = "info"
 NODE_ENV = "production"
 SERVE_STATIC = "true"

@@ -19,7 +19,7 @@ export NODE_ENV="${NODE_ENV:-production}"
 # ── Pull latest code from GitHub ─────────────────────────────
 echo "[1/4] Pulling latest code from GitHub..."
 cd /home/container 2>/dev/null || cd "$(dirname "$0")/../.."
-git pull origin main 2>/dev/null || git clone https://github.com/mzeeemzimanjejeje/anonymike-hosting.git . 2>/dev/null || true
+git pull origin main 2>/dev/null || git clone https://github.com/mzeeemzimanjejeje/courtney-hosting.git . 2>/dev/null || true
 
 # ── Install dependencies ──────────────────────────────────────
 echo "[2/4] Installing dependencies..."

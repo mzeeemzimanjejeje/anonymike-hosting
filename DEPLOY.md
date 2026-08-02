@@ -12,8 +12,8 @@
 ## 1. Pull the code
 
 ```bash
-git clone https://github.com/mzeeemzimanjejeje/anonymike-hosting.git
-cd anonymike-hosting
+git clone https://github.com/mzeeemzimanjejeje/courtney-hosting.git
+cd courtney-hosting
 ```
 
 ## 2. Install dependencies

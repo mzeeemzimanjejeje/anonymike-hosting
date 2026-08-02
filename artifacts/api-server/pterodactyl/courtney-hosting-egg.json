@@ -1,0 +1,226 @@
+{
+  "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY COURTNEY HOSTING",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2026-07-18T00:00:00+00:00",
+  "name": "COURTNEY HOSTING",
+  "author": "admin@courtneytech.xyz",
+  "description": "Courtney Hosting \u2014 Bot Hosting & Subdomain Platform. Zero-install egg: downloads the latest release from GitHub automatically.",
+  "features": null,
+  "docker_images": {
+    "Node.js 20": "ghcr.io/parkervcp/yolks:nodejs_20",
+    "Node.js 22": "ghcr.io/parkervcp/yolks:nodejs_22"
+  },
+  "file_denylist": [
+    ".env",
+    ".env.*"
+  ],
+  "startup": "node index.js",
+  "config": {
+    "files": "{}",
+    "startup": "{\"done\": \"Server listening\"}",
+    "logs": "{}",
+    "stop": "^C"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/bash\r\n# \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\r\n# \u2551   COURTNEY HOSTING \u2014 Zero-Install Setup        \u2551\r\n# \u2551   Downloads latest release from GitHub     \u2551\r\n# \u2551   No npm install required.                  \u2551\r\n# \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\r\n\r\nset -e\r\n\r\nGITHUB_REPO=\"mzeeemzimanjejeje/courtney-hosting\"\r\nGITHUB_BRANCH=\"main\"\r\nINSTALL_DIR=\"/mnt/server\"\r\n\r\necho \"\"\r\necho \"==> Preparing install directory...\"\r\nmkdir -p \"${INSTALL_DIR}\"\r\ncd \"${INSTALL_DIR}\"\r\n\r\n# Remove existing files but keep the directory\r\nfind . -mindepth 1 -maxdepth 1 ! -name '.' -exec rm -rf {} + 2>/dev/null || true\r\n\r\necho \"==> Installing dependencies (curl, tar)...\"\r\napt-get update -qq\r\napt-get install -y -qq curl tar 2>/dev/null\r\n\r\necho \"==> Downloading COURTNEY HOSTING from GitHub...\"\r\ncurl -fsSL \"https://github.com/${GITHUB_REPO}/archive/refs/heads/${GITHUB_BRANCH}.tar.gz\" \\\r\n  -o /tmp/anonymiketech.tar.gz\r\n\r\necho \"==> Extracting files...\"\r\ntar -xzf /tmp/anonymiketech.tar.gz \\\r\n  --strip-components=1 \\\r\n  -C \"${INSTALL_DIR}\"\r\n\r\nrm -f /tmp/anonymiketech.tar.gz\r\n\r\necho \"==> Verifying install...\"\r\nif [ ! -f \"${INSTALL_DIR}/index.js\" ]; then\r\n  echo \"ERROR: index.js not found after extraction. Install failed.\"\r\n  exit 1\r\nfi\r\n\r\nif [ ! -f \"${INSTALL_DIR}/server.mjs\" ]; then\r\n  echo \"ERROR: server.mjs not found after extraction. Install failed.\"\r\n  exit 1\r\nfi\r\n\r\necho \"\"\r\necho \"\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\"\r\necho \"\u2551      COURTNEY HOSTING installed successfully!  \u2551\"\r\necho \"\u2551                                              \u2551\"\r\necho \"\u2551  All environment variables are pre-filled.  \u2551\"\r\necho \"\u2551  Just hit Start \u2014 you're ready to go!       \u2551\"\r\necho \"\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\"\r\necho \"\"",
+      "container": "ghcr.io/parkervcp/yolks:debian",
+      "entrypoint": "bash"
+    }
+  },
+  "variables": [
+    {
+      "name": "Server Port",
+      "description": "Port the platform listens on. Automatically set to the Pterodactyl-allocated port \u2014 do not change this.",
+      "env_variable": "PORT",
+      "default_value": "{{server.build.default.port}}",
+      "user_viewable": true,
+      "user_editable": false,
+      "rules": "required|numeric|between:1024,65535",
+      "field_type": "text"
+    },
+    {
+      "name": "Node Environment",
+      "description": "Always production.",
+      "env_variable": "NODE_ENV",
+      "default_value": "production",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|in:production,development",
+      "field_type": "text"
+    },
+    {
+      "name": "Serve Static Frontend",
+      "description": "Serve the built React frontend from disk. Must be true.",
+      "env_variable": "SERVE_STATIC",
+      "default_value": "true",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Database URL",
+      "description": "Main PostgreSQL connection string (users, bots, transactions, etc.).",
+      "env_variable": "DATABASE_URL",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Session Database URL",
+      "description": "(Optional) Separate PostgreSQL URL for session storage only. Leave blank to use the main DATABASE_URL.",
+      "env_variable": "SESSION_DATABASE_URL",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Session Secret",
+      "description": "Long random string used to sign session cookies.",
+      "env_variable": "SESSION_SECRET",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string|min:32",
+      "field_type": "text"
+    },
+    {
+      "name": "GitHub OAuth Client ID",
+      "description": "GitHub OAuth App client ID. Callback: https://hosts.courtneytech.xyz/api/auth/github/callback",
+      "env_variable": "GITHUB_CLIENT_ID",
+      "default_value": "Ov23liYds7tYRCbVfU1m",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "GitHub OAuth Client Secret",
+      "description": "Secret key for your GitHub OAuth App.",
+      "env_variable": "GITHUB_CLIENT_SECRET",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Google OAuth Client ID",
+      "description": "Google OAuth client ID. Redirect: https://hosts.courtneytech.xyz/api/auth/google/callback",
+      "env_variable": "GOOGLE_CLIENT_ID",
+      "default_value": "840004396655-fhvkaedjsg87vk9k8n35vp6ulomh7rsi.apps.googleusercontent.com",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Google OAuth Client Secret",
+      "description": "Secret key for your Google OAuth client.",
+      "env_variable": "GOOGLE_CLIENT_SECRET",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Admin Emails",
+      "description": "Comma-separated email addresses that get admin access at /1admin1",
+      "env_variable": "ADMIN_EMAILS",
+      "default_value": "admin@courtneytech.xyz",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Pterodactyl Panel URL",
+      "description": "Full URL of your Pterodactyl panel where user bots will be hosted.",
+      "env_variable": "PTERODACTYL_URL",
+      "default_value": "https://apps.courtneytech.xyz",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Pterodactyl Application API Key",
+      "description": "Application API key from Admin \u2192 Application API \u2192 Create in your Pterodactyl panel.",
+      "env_variable": "PTERODACTYL_API_KEY",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Resend API Key",
+      "description": "API key from https://resend.com for sending transactional emails.",
+      "env_variable": "RESEND_API_KEY",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Payflow Account ID",
+      "description": "(Optional) Payflow/M-Pesa account ID for accepting payments.",
+      "env_variable": "PAYFLOW_ACCOUNT_ID",
+      "default_value": "77",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Payflow API Key",
+      "description": "(Optional) Payflow API key.",
+      "env_variable": "PAYFLOW_API_KEY",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Payflow API Secret",
+      "description": "(Optional) Payflow API secret.",
+      "env_variable": "PAYFLOW_API_SECRET",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "GitHub Personal Access Token",
+      "description": "Personal access token for GitHub API access.",
+      "env_variable": "GITHUB_PERSONAL_ACCESS_TOKEN",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Log Level",
+      "description": "Logging verbosity. Use info for normal operation, debug for troubleshooting.",
+      "env_variable": "LOG_LEVEL",
+      "default_value": "info",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|in:error,warn,info,debug",
+      "field_type": "text"
+    }
+  ]
+}

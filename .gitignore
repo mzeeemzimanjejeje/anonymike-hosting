@@ -52,3 +52,7 @@ Thumbs.db
 .env
 .env.local
 .env.production
+
+
+# Pterodactyl egg files — contain credentials, never commit
+attached_assets/
