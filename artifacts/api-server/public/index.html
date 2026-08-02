@@ -27,30 +27,6 @@
       /* ── Global font upgrade ── */
       *, *::before, *::after { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important; }
 
-      /* ── Ticker strip ── */
-      #ch-ticker {
-        position: fixed; top: 0; left: 0; right: 0; z-index: 9990;
-        height: 30px; overflow: hidden;
-        background: hsl(var(--background, 222 84% 5%));
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        display: flex; align-items: center;
-      }
-      #ch-ticker-track {
-        display: flex; align-items: center;
-        animation: ch-ticker 30s linear infinite;
-        white-space: nowrap; flex-shrink: 0;
-      }
-      .ch-tick {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 0 22px; font-size: 11px !important; font-weight: 500 !important;
-        color: #71717a; border-right: 1px solid rgba(255,255,255,0.05);
-        line-height: 1;
-      }
-      .ch-tick em { font-style: normal; font-size: 9px !important; color: #3f3f46; font-weight: 400 !important; }
-      @keyframes ch-ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-
-      /* ── Push everything down by ticker height ── */
-      body { padding-top: 30px !important; }
 
       /* ── Fix doubled/glitched gradient text ── */
       .tech-gradient-text::before,
@@ -87,33 +63,6 @@
     </style>
   </head>
   <body>
-
-    <!-- Integration ticker — injected above the React nav -->
-    <div id="ch-ticker">
-      <div id="ch-ticker-track">
-        <span class="ch-tick">🤖 WhatsApp <em>Bots</em></span>
-        <span class="ch-tick">☁️ Cloudflare <em>DNS</em></span>
-        <span class="ch-tick">💳 M-Pesa <em>Payments</em></span>
-        <span class="ch-tick">🌐 courtneytech.xyz <em>Subdomains</em></span>
-        <span class="ch-tick">🔐 GitHub OAuth <em>Auth</em></span>
-        <span class="ch-tick">⚡ Pterodactyl <em>Panel</em></span>
-        <span class="ch-tick">📧 Resend <em>Email</em></span>
-        <span class="ch-tick">🐘 PostgreSQL <em>Database</em></span>
-        <span class="ch-tick">🔔 Real-time <em>Monitoring</em></span>
-        <span class="ch-tick">🛡️ Always-on <em>Uptime</em></span>
-        <!-- duplicate for seamless loop -->
-        <span class="ch-tick">🤖 WhatsApp <em>Bots</em></span>
-        <span class="ch-tick">☁️ Cloudflare <em>DNS</em></span>
-        <span class="ch-tick">💳 M-Pesa <em>Payments</em></span>
-        <span class="ch-tick">🌐 courtneytech.xyz <em>Subdomains</em></span>
-        <span class="ch-tick">🔐 GitHub OAuth <em>Auth</em></span>
-        <span class="ch-tick">⚡ Pterodactyl <em>Panel</em></span>
-        <span class="ch-tick">📧 Resend <em>Email</em></span>
-        <span class="ch-tick">🐘 PostgreSQL <em>Database</em></span>
-        <span class="ch-tick">🔔 Real-time <em>Monitoring</em></span>
-        <span class="ch-tick">🛡️ Always-on <em>Uptime</em></span>
-      </div>
-    </div>
 
     <!-- React app -->
     <div id="root"></div>
