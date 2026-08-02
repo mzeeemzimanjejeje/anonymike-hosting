@@ -28,16 +28,29 @@
     <script type="module" crossorigin src="/assets/index-CBtdmwt8.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-Do4ZnO8S.css">
     <style>
-      /* Fix: prevent GPU rendering artifacts (matrix/glitch effect) on mobile
-         caused by mix-blend-mode:screen on large blurred background orbs */
+      /* Fix: prevent GPU rendering artifacts (matrix/glitch effect) on mobile */
       .mix-blend-screen { mix-blend-mode: normal !important; }
 
       /* Fix: prevent blank-page flash while maintenance status loads */
       #root:empty { display: none; }
 
-      /* Fix: smoother page transitions — prevent Framer Motion re-animations
-         from looking like glitch/duplicate text on slow networks */
+      /* Fix: stop Framer Motion duplicate/ghost text on slow networks & mobile */
       .font-display { will-change: auto !important; }
+
+      /* Fix: stop tech-gradient-text from doubling via pseudo-element animation */
+      .tech-gradient-text::before,
+      .tech-gradient-text::after { display: none !important; content: none !important; }
+      .tech-gradient-text {
+        animation: none !important;
+        -webkit-animation: none !important;
+        transform: none !important;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+
+      /* Domains sidebar link styling */
+      [data-ch-sd] { color: inherit !important; }
+      [data-ch-sd]:hover { opacity: 0.8; }
     </style>
   </head>
   <body>
@@ -922,36 +935,114 @@
     🌐 Subdomains
   </a>
   <script>
-  // Inject "Buy Subdomain" into React sidebar once it renders
+  // Inject "Domains" into React sidebar — persistent across React re-renders
   (function() {
     const HREF = '/subdomains', ATTR = 'data-ch-sd';
-    function tryInject() {
-      if (document.querySelector('[' + ATTR + ']')) return true;
-      // Try common sidebar nav link selectors
-      const links = document.querySelectorAll('nav a[href], aside a[href], [role="navigation"] a[href]');
-      if (!links.length) return false;
-      const last = links[links.length - 1];
-      const clone = last.cloneNode(true);
-      clone.href = HREF;
+
+    function makeDomainLink(template) {
+      // Clone structure from an existing sidebar link
+      const clone = template.cloneNode(true);
       clone.setAttribute(ATTR, '1');
       clone.removeAttribute('aria-current');
-      // Update text nodes
-      Array.from(clone.querySelectorAll('*')).filter(el => !el.children.length && el.textContent.trim()).slice(-1).forEach(el => el.textContent = 'Buy Subdomain');
-      // Update SVG icon to globe
-      const svgs = clone.querySelectorAll('svg');
-      svgs.forEach(svg => {
-        svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>';
+      clone.removeAttribute('aria-selected');
+
+      // Set href (works for <a> tags; also set onclick for router links)
+      if (clone.tagName === 'A') {
+        clone.href = HREF;
+      } else {
+        clone.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = HREF;
+        });
+      }
+
+      // Replace every visible text node with "Domains"
+      const textNodes = [];
+      (function walk(node) {
+        if (node.nodeType === 3 && node.textContent.trim()) textNodes.push(node);
+        else node.childNodes.forEach(walk);
+      })(clone);
+      if (textNodes.length) textNodes[textNodes.length - 1].textContent = 'Domains';
+
+      // Replace SVG with a globe icon
+      clone.querySelectorAll('svg').forEach(svg => {
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>';
       });
-      last.parentNode.appendChild(clone);
-      // Hide FAB once sidebar injection succeeds
+
+      return clone;
+    }
+
+    function tryInject() {
+      if (document.querySelector('[' + ATTR + ']')) return true;
+
+      // Look for sidebar nav items — try multiple selector strategies
+      const selectors = [
+        'nav a[href]',
+        'aside a[href]',
+        '[role="navigation"] a[href]',
+        // Shadcn/Radix sidebar patterns
+        '[data-sidebar] a',
+        '[class*="sidebar"] a[href]',
+        // Fallback: any nav-like list items containing text links
+        'ul li a[href]',
+      ];
+
+      let links = [];
+      for (const sel of selectors) {
+        links = Array.from(document.querySelectorAll(sel))
+          .filter(el => el.offsetParent !== null && el.textContent.trim().length > 0);
+        if (links.length >= 2) break;
+      }
+
+      if (!links.length) return false;
+
+      // Filter to sidebar-only links (exclude header/topbar links)
+      const sidebarLinks = links.filter(el => {
+        const rect = el.getBoundingClientRect();
+        return rect.width < window.innerWidth * 0.5; // sidebar items are not full-width
+      });
+
+      const template = (sidebarLinks.length ? sidebarLinks : links).slice(-1)[0];
+      if (!template) return false;
+
+      // Don't add if "Domains" or "Subdomain" already exists in same container
+      const parent = template.parentNode;
+      if (!parent) return false;
+      const existing = Array.from(parent.children).find(el =>
+        el.textContent.toLowerCase().includes('domain') || el.textContent.toLowerCase().includes('subdomain')
+      );
+      if (existing) { existing.setAttribute(ATTR, '1'); return true; }
+
+      const link = makeDomainLink(template);
+      parent.appendChild(link);
+
+      // Hide FAB now that sidebar has the link
       const fab = document.getElementById('ch-subdomain-btn');
       if (fab) fab.style.display = 'none';
       return true;
     }
+
+    // Run immediately, then watch for React re-renders (sidebar open/close, navigation)
     if (!tryInject()) {
-      const obs = new MutationObserver(() => { if (tryInject()) obs.disconnect(); });
+      const obs = new MutationObserver(() => {
+        tryInject(); // re-inject every time DOM changes (handles sidebar re-renders)
+      });
       obs.observe(document.body, { childList: true, subtree: true });
-      setTimeout(() => obs.disconnect(), 20000);
+      // Never fully disconnect — sidebar can re-render on every route change
+      setTimeout(() => {
+        obs.disconnect();
+        // Final fallback: keep FAB always visible if injection never worked
+        const fab = document.getElementById('ch-subdomain-btn');
+        if (fab && !document.querySelector('[' + ATTR + ']')) {
+          fab.style.display = 'flex';
+        }
+      }, 30000);
     }
   })();
   </script>
